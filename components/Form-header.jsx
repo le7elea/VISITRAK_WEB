@@ -27,10 +27,10 @@ export default function Header() {
       <h1 className="text-3xl font-bold text-center">VisiTrak</h1>
 
       {/* Subtitles */}
-      <p className="font-bold text-3xl mt-10 ml-10 tracking-wide">
+      <p className="font-bold text-3xl mt-5 tracking-wide">
         Your Visit Matters
       </p>
-      <p className="text-lg mt-1 ml-10">
+      <p className="text-lg mt-1">
         Thank you for being part of our vibrant community!
       </p>
 
