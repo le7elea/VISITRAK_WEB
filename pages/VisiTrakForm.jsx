@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   FaUser,
   FaHome,
@@ -8,10 +9,7 @@ import {
 } from "react-icons/fa";
 import { IoNewspaperOutline, IoLocationOutline } from "react-icons/io5";
 
-import { useNavigate } from "react-router-dom";
-
 import headerBg from "../src/assets/BG2.png";
-
 import Header from "../components/Form-header";
 import SectionCard from "../components/SectionCard";
 import InputField from "../components/InputField";
@@ -29,6 +27,21 @@ export default function VisiTrakForm() {
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Auto-redirect if QR contains ?redirect=xxx&id=yyy
+  useEffect(() => {
+    const redirect = searchParams.get("redirect");
+    const id = searchParams.get("id");
+
+    if (redirect) {
+      if (id) {
+        navigate(`/${redirect}/${id}`, { replace: true });
+      } else {
+        navigate(`/${redirect}`, { replace: true });
+      }
+    }
+  }, [searchParams, navigate]);
 
   const purposes = ["COR/TOR", "Medical", "Delivery", "Maintenance", "Other"];
   const offices = [
@@ -60,7 +73,6 @@ export default function VisiTrakForm() {
     const exitKey = generateExitKey();
     const checkInTime = new Date().toLocaleTimeString();
 
-    // ✅ Navigate to SuccessPage and pass data
     navigate("/success", {
       state: {
         fullName,
