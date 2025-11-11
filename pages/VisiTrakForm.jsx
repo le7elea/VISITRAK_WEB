@@ -43,23 +43,23 @@ export default function VisiTrakForm() {
 
   // 🧩 Purpose–Office mapping
   const purposeToOffice = {
-    "COR/TOR": "Registrar",
-    "Medical": "Clinic",
-    "Payment": "Cashier",
-    "Visit": "", 
-    "Seminar / Webinar": "",
+    "COR/TOR": "REGISTRAR",
+    "MEDICAL": "CLINIC",
+    "PAYMENT": "CASHIER",
+    "VISIT": "", 
+    "SEMINAR / WEBINAR": "",
     "Other": "", 
   };
 
-  const purposes = ["COR/TOR", "Medical", "Payment", "Visit", "Other"];
+  const purposes = ["COR/TOR", "MEDICAL", "PAYMENT", "VISIT", "SEMINAR / WEBINAR", "Other"];
   const offices = [
-    "Registrar",
-    "Clinic",
-    "Cashier",
-    "Admin Office",
-    "CCIS & CTAS Faculty",
-    "CCIS Extension Faculty",
-    "CCJ Faculty",
+    "REGISTRAR",
+    "CLINIC",
+    "CASHIER",
+    "ADMIN OFFICE",
+    "CCIS & CTAS FACULTY",
+    "CCIS EXTENSION FACULTY",
+    "CCJ FACULTY",
     "Other",
   ];
 
@@ -172,7 +172,7 @@ export default function VisiTrakForm() {
               icon={<IoNewspaperOutline className="text-indigo-600" />}
               placeholder="Please specify your purpose"
               value={otherPurpose}
-              onChange={(e) => setOtherPurpose(e.target.value)}
+              onChange={(e) => setOtherPurpose(e.target.value.toUpperCase())}
             />
           )}
           
@@ -190,7 +190,7 @@ export default function VisiTrakForm() {
               icon={<FaBuilding className="text-indigo-600" />}
               placeholder="Please specify the office"
               value={otherOffice}
-              onChange={(e) => setOtherOffice(e.target.value)}
+              onChange={(e) => setOtherOffice(e.target.value.toUpperCase())}
             />
           )}
         </SectionCard>
