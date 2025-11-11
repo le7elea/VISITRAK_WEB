@@ -41,22 +41,37 @@ export default function Satisfaction() {
       <main className="flex-grow flex justify-center p-4">
         <div
           className="rounded-xl shadow-md w-full max-w-2xl p-6"
-          style={{ background: "linear-gradient(to bottom, #e9dac4ff, #eaddc3ff, #d0c8baff)" }}
+          style={{
+            background: "linear-gradient(to bottom, #e9dac4ff, #eaddc3ff, #d0c8baff)",
+          }}
         >
-          <h1 className="text-2xl font-bold mb-6">Give Feedback</h1>
+          <h1 className="text-2xl font-bold mb-1">Give Feedback</h1>
+
+          <p className="mb-4">
+            Please rate our services:{" "}
+            <span className="text-gray-500 text-sm">
+              <i>(Note: Answer the satisfaction form <u>after visiting the office.</u>)</i>
+            </span>
+          </p>
 
           <form onSubmit={handleSubmit}>
             {questions.map((q, i) => (
               <Question key={i} number={i + 1} text={q} onAnswer={handleAnswer} />
             ))}
 
-            <TextField
-              label="Do you have any suggestions or comments to help us improve?"
-              placeholder="Write your suggestion here..."
-              value={suggestion}
-              onChange={setSuggestion}
-              type="textarea"
-            />
+            <div className="mb-4">
+              <TextField
+                label="Do you have any suggestions or comments to help us improve?"
+                placeholder="Write your suggestion here..."
+                value={suggestion}
+                onChange={setSuggestion}
+                type="textarea"
+              />
+              {/* Character counter */}
+              <p className="text-right text-gray-500 text-xs mt-1">
+                {suggestion.length}/300
+              </p>
+            </div>
 
             {/* Exit Key with Icon */}
             <div className="mb-2">Enter your Exit Key.</div>
@@ -78,6 +93,7 @@ export default function Satisfaction() {
               SUBMIT FEEDBACK
             </button>
           </form>
+
           <div className="text-center text-gray-400 text-sm mt-4">
             &copy; 2025 LMT. All rights reserved.
           </div>

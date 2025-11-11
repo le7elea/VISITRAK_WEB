@@ -25,5 +25,5 @@ export default function Question({ number, text, onAnswer }) {
         
       </div>
     </div>
-  );
+  ); 
 }

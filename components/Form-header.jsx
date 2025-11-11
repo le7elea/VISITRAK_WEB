@@ -11,7 +11,7 @@ export default function Header() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Auto-slide every 5s
-  useEffect(() => {
+  useEffect(() => { 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length);
     }, 5000);

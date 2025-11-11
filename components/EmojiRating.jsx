@@ -10,11 +10,31 @@ import { FaRegSmile, FaSmile } from "react-icons/fa";
 
 function EmojiRating({ value, onChange, notApplicable, onNotApplicableChange }) {
   const icons = [
-    { inactive: <IoSadOutline />, active: <IoSad /> },
-    { inactive: <MdOutlineSentimentDissatisfied />, active: <MdSentimentDissatisfied /> },
-    { inactive: <MdOutlineSentimentNeutral />, active: <MdSentimentNeutral /> },
-    { inactive: <IoHappyOutline />, active: <IoHappy /> },
-    { inactive: <FaRegSmile />, active: <FaSmile /> },
+    { 
+      inactive: <IoSadOutline />, 
+      active: <IoSad />,
+      label: "Very Dissatisfied"
+    },
+    { 
+      inactive: <MdOutlineSentimentDissatisfied />, 
+      active: <MdSentimentDissatisfied />,
+      label: "Dissatisfied"
+    },
+    { 
+      inactive: <MdOutlineSentimentNeutral />, 
+      active: <MdSentimentNeutral />,
+      label: "Neutral"
+    },
+    { 
+      inactive: <IoHappyOutline />, 
+      active: <IoHappy />,
+      label: "Satisfied"
+    },
+    { 
+      inactive: <FaRegSmile />, 
+      active: <FaSmile />,
+      label: "Very Satisfied"
+    },
   ];
 
   return (
@@ -63,6 +83,18 @@ export default function App() {
   const [rating, setRating] = useState(0);
   const [notApplicable, setNotApplicable] = useState(false);
 
+  // Function to get the rating label
+  const getRatingLabel = (ratingValue) => {
+    const labels = {
+      1: "Very Dissatisfied",
+      2: "Dissatisfied", 
+      3: "Neutral",
+      4: "Satisfied",
+      5: "Very Satisfied"
+    };
+    return labels[ratingValue] || "";
+  };
+
   return (
     <div className="flex flex-col items-center justify-center gap-4 p-4 sm:p-6">
       <EmojiRating
@@ -76,7 +108,7 @@ export default function App() {
         {notApplicable
           ? "Not Applicable selected"
           : rating > 0
-          ? `You selected: ${rating}`
+          ? `You selected: ${getRatingLabel(rating)}`
           : "No rating yet"}
       </p>
     </div>

@@ -18,4 +18,4 @@ export default function Header({ title }) {
       <h1 className="text-white text-3xl font-bold">{title}</h1>
     </header>
   );
-}
+} 
