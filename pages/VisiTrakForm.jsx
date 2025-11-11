@@ -147,13 +147,13 @@ export default function VisiTrakForm() {
             icon={<FaUser className="text-indigo-600" />}
             placeholder="Full Name"
             value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            onChange={(e) => setFullName(e.target.value.toUpperCase())}
           />
           <InputField
             icon={<FaHome className="text-indigo-600" />}
             placeholder="Home Address"
             value={homeAddress}
-            onChange={(e) => setHomeAddress(e.target.value)}
+            onChange={(e) => setHomeAddress(e.target.value.toUpperCase())}
           />
         </SectionCard>
 
