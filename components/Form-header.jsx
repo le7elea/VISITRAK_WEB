@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { FaUser } from "react-icons/fa";
 
-import BG1 from "../src/assets/BG1.png";
-import BG2 from "../src/assets/BG2.png";
-import BG3 from "../src/assets/BG3.png";
+import BG1 from "../src/assets/backG004.png";
+import BG2 from "../src/assets/backG009.png";
+import BG3 from "../src/assets/backG010.png";
 
 const images = [BG1, BG2, BG3];
 

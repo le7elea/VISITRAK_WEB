@@ -15,6 +15,7 @@ import SectionCard from "../components/SectionCard";
 import InputField from "../components/InputField";
 import SelectField from "../components/SelectField";
 import TermsCheckbox from "../components/TermsCheckbox";
+import BoholAddressSelector from "../components/BoholAddressSelector";
 import Footer from "../components/Footer";
 
 export default function VisiTrakForm() {
@@ -28,6 +29,10 @@ export default function VisiTrakForm() {
   const [showTerms, setShowTerms] = useState(false);
   const [otherPurpose, setOtherPurpose] = useState("");
   const [otherOffice, setOtherOffice] = useState("");
+  const [staffName, setStaffName] = useState("");
+  const [firstFilled, setFirstFilled] = useState(null);
+  const [customPurpose, setCustomPurpose] = useState("");
+  const [customOffice, setCustomOffice] = useState("");
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -51,6 +56,52 @@ export default function VisiTrakForm() {
     "Other": "", 
   };
 
+  const officeStaffData = {
+    REGISTRAR: [
+      { name: "Ms. Uy", purpose: "COR/TOR" },
+      { name: "Ms. Dela Cruz", purpose: "COR/TOR" },
+    ],
+    CLINIC: [
+      { name: "Dr. Santos", purpose: "MEDICAL" },
+      { name: "Dr. Villanueva", purpose: "MEDICAL" },
+    ],
+    CASHIER: [{ name: "Mr. Tan", purpose: "PAYMENT" }],
+    "ADMIN OFFICE": [
+      { name: "Ms. Jeanette B. Darunday" },
+      { name: "Ms. Annabelle T. Pabas" },
+      { name: "Ms. Maricel E. Cal" },
+    ],
+    "CCIS & CTAS FACULTY": [
+      { name: "Ms. Sasha Isabela Uy" },
+      { name: "Mrs. Cathlene Leah Gabo" },
+      { name: "Mr. Raymond Cempron" },
+      { name: "Mr. Emiliano Maravilla" },
+      { name: "Mrs. Dhoree Maravilla" },
+    ],
+    "CCIS EXTENSION FACULTY": [
+      { name: "Ms. Sasha Isabela Uy" },
+      { name: "Mrs. Cathlene Leah Gabo" },
+    ],
+    "CCJ FACULTY": [
+      { name: "Dr. Mary Grace M. Quino" },
+      { name: "Mr. Dave Vincent G. Estrobo" },
+    ],
+  };
+
+  const officeToPurposeMap = {
+    REGISTRAR: ["COR/TOR", "Other"],
+    CLINIC: ["Medical Checkup", "Medical Certificate", "Dental Checkup", "Other"],
+    CASHIER: ["PAYMENT", "Other"],
+    "ADMIN OFFICE": ["INQUIRY", "SUBMISSION OF REQUIREMENTS", "Other"],
+    "CCIS & CTAS FACULTY": ["INQUIRY", "ADVISING", "CONSULTATION", "Other"],
+    "CCIS EXTENSION FACULTY": ["INQUIRY", "ADVISING", "CONSULTATION", "Other"],
+    "CCJ FACULTY": ["INQUIRY", "ADVISING", "CONSULTATION", "Other"],
+  };
+
+  const allStaffOptions = Object.entries(officeStaffData).flatMap(([office, staff]) =>
+    staff.map((s) => ({ ...s, office }))
+  );
+
   const purposes = ["COR/TOR", "MEDICAL", "PAYMENT", "VISIT", "SEMINAR / WEBINAR", "Other"];
   const offices = [
     "REGISTRAR",
@@ -62,6 +113,29 @@ export default function VisiTrakForm() {
     "CCJ FACULTY",
     "Other",
   ];
+
+  const [filteredPurposes, setFilteredPurposes] = useState(purposes);
+  const [filteredStaffOptions, setFilteredStaffOptions] = useState(allStaffOptions);
+
+  const isOfficeAutoAssigned = purposeToOffice[purpose] !== undefined;
+
+  useEffect(() => {
+    if (office) {
+      setFilteredStaffOptions(allStaffOptions.filter((s) => s.office === office));
+    } else {
+      setFilteredStaffOptions(allStaffOptions);
+    }
+  }, [office]);
+
+  useEffect(() => {
+    if (staffName) {
+      const selectedStaff = allStaffOptions.find((s) => s.name === staffName);
+      if (selectedStaff) {
+        setOffice(selectedStaff.office);
+        setOtherOffice("");
+      }
+    }
+  }, [staffName]);
 
   // 🪄 Automatically set office when purpose changes
   const handlePurposeChange = (e) => {
@@ -76,16 +150,18 @@ export default function VisiTrakForm() {
     if (selectedPurpose !== "Other") {
       setOtherPurpose("");
     }
+    setCustomPurpose(selectedPurpose === "Other" ? customPurpose : "");
+    if (!firstFilled && selectedPurpose) setFirstFilled("purpose");
+    setStaffName("");
   };
 
   // Handle office change
   const handleOfficeChange = (e) => {
     const selectedOffice = e.target.value;
-    setOffice(selectedOffice);
-    
-    // Clear other office field when switching away from "Other"
-    if (selectedOffice !== "Other") {
-      setOtherOffice("");
+    if (!isOfficeAutoAssigned && !(firstFilled === "staff" && !!staffName)) {
+      setOffice(selectedOffice);
+      setCustomOffice(selectedOffice === "Other" ? customOffice : "");
+      setStaffName("");
     }
   };
 
@@ -125,15 +201,51 @@ export default function VisiTrakForm() {
         email,
         checkInTime,
         exitKey,
+        staffName,
       },
     });
   };
+
+  useEffect(() => {
+    if (!purpose) {
+      setOffice("");
+      setCustomOffice("");
+      return;
+    }
+
+    if (purposeToOffice[purpose]) {
+      setOffice(purposeToOffice[purpose]);
+    }
+  }, [purpose]);
+
+  useEffect(() => {
+    if (office && officeToPurposeMap[office]) {
+      setFilteredPurposes(officeToPurposeMap[office]);
+      if (purpose && purpose !== "Other" && !officeToPurposeMap[office].includes(purpose)) {
+        setPurpose("");
+        setCustomPurpose("");
+      }
+    } else {
+      setFilteredPurposes(purposes);
+    }
+  }, [office]);
+
+  useEffect(() => {
+    if (!firstFilled) {
+      if (staffName) setFirstFilled("staff");
+      else if (purpose) setFirstFilled("purpose");
+    }
+  }, [staffName, purpose]);
+
+  useEffect(() => {
+    if (!staffName && !purpose && firstFilled) setFirstFilled(null);
+  }, [staffName, purpose]);
 
   return (
     <div
       className="flex flex-col min-h-screen"
       style={{
-        background: "linear-gradient(to bottom, #1A237E, #3949AB, #5C6BC0)",
+        background: "linear-gradient(to bottom, #381366, #4A2279, #573483)",
       }}
     >
       <Header headerBg={headerBg} />
@@ -149,21 +261,57 @@ export default function VisiTrakForm() {
             value={fullName}
             onChange={(e) => setFullName(e.target.value.toUpperCase())}
           />
-          <InputField
-            icon={<FaHome className="text-indigo-600" />}
-            placeholder="Home Address"
-            value={homeAddress}
-            onChange={(e) => setHomeAddress(e.target.value.toUpperCase())}
+          <BoholAddressSelector
+            homeAddress={homeAddress}
+            setHomeAddress={setHomeAddress}
           />
         </SectionCard>
 
         <SectionCard title="Visit Information" icon={<IoLocationOutline />}>
           <SelectField
+            icon={<FaUser className="text-indigo-600" />}
+            value={staffName}
+            onChange={(e) => {
+              const staffDisabled = firstFilled === "purpose";
+              setStaffName(e.target.value);
+              if (!firstFilled && e.target.value) setFirstFilled("staff");
+
+              if (!staffDisabled && !e.target.value) {
+                setPurpose("");
+                setCustomPurpose("");
+                setCustomOffice("");
+              }
+            }}
+            options={filteredStaffOptions.map((s) => s.name)}
+            placeholder="Staff / Instructor Name (optional)"
+          />
+
+          <SelectField
+            icon={<FaBuilding className="text-indigo-600" />}
+            value={office}
+            onChange={handleOfficeChange}
+            options={offices}
+            placeholder="Office to Visit"
+            disabled={!!staffName}
+          />
+          
+          {/* Show input field when office is "Other" */}
+          {office === "Other" && !isOfficeAutoAssigned && (
+            <InputField
+              icon={<FaBuilding className="text-indigo-600" />}
+              placeholder="Please specify the office"
+              value={customOffice}
+              onChange={(e) => setCustomOffice(e.target.value.toUpperCase())}
+            />
+          )}
+
+          <SelectField
             icon={<IoNewspaperOutline className="text-indigo-600" />}
             value={purpose}
             onChange={handlePurposeChange}
-            options={purposes}
+            options={filteredPurposes}
             placeholder="Purpose of Visit"
+            disabled={false}
           />
           
           {/* Show input field when purpose is "Other" */}
@@ -171,26 +319,8 @@ export default function VisiTrakForm() {
             <InputField
               icon={<IoNewspaperOutline className="text-indigo-600" />}
               placeholder="Please specify your purpose"
-              value={otherPurpose}
-              onChange={(e) => setOtherPurpose(e.target.value.toUpperCase())}
-            />
-          )}
-          
-          <SelectField
-            icon={<FaBuilding className="text-indigo-600" />}
-            value={office}
-            onChange={handleOfficeChange}
-            options={offices}
-            placeholder="Office to Visit"
-          />
-          
-          {/* Show input field when office is "Other" */}
-          {office === "Other" && (
-            <InputField
-              icon={<FaBuilding className="text-indigo-600" />}
-              placeholder="Please specify the office"
-              value={otherOffice}
-              onChange={(e) => setOtherOffice(e.target.value.toUpperCase())}
+              value={customPurpose}
+              onChange={(e) => setCustomPurpose(e.target.value.toUpperCase())}
             />
           )}
         </SectionCard>
@@ -224,75 +354,6 @@ export default function VisiTrakForm() {
           Submit Registration
         </button>
       </form>
-
-      <Footer />
-
-      {/* Terms Modal (unchanged) */}
-      {showTerms && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60">
-          <div className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] flex flex-col">
-            <div className="flex-1 overflow-y-auto">
-              <h2 className="text-center font-bold text-lg sm:text-xl mb-2 text-gray-900">
-                VisiTrak – Terms and Conditions
-              </h2>
-              <p className="text-xs text-gray-700 mb-4 text-center">
-                Last Updated: October 25, 2025
-              </p>
-
-              <div className="space-y-4 text-sm sm:text-base text-gray-800">
-                <p>
-                  Welcome to VisiTrak! These Terms and Conditions govern your use
-                  of the VisiTrak mobile application. By using this app, you agree
-                  to the following:
-                </p>
-
-                <section>
-                  <h3 className="font-semibold mb-1">1. Authorized Use</h3>
-                  <p>
-                    VisiTrak is for authorized personnel only. Unauthorized access
-                    or misuse is strictly prohibited.
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="font-semibold mb-1">2. Data Collection</h3>
-                  <p>
-                    The app may collect visitor information such as name, contact
-                    details, purpose of visit, and time of entry.
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="font-semibold mb-1">3. Privacy</h3>
-                  <p>
-                    All collected data is handled securely and used only for
-                    authorized purposes.
-                  </p>
-                </section>
-
-                <section>
-                  <h3 className="font-semibold mb-1">4. Limitation of Liability</h3>
-                  <p>
-                    The developers are not responsible for data loss or misuse
-                    beyond reasonable control.
-                  </p>
-                </section>
-
-                <p className="text-xs text-center text-gray-500 mt-6">
-                  © 2025 VisiTrak. All rights reserved.
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowTerms(false)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl mt-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

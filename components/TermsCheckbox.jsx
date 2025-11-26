@@ -88,7 +88,7 @@ export default function TermsCheckbox({ checked, onChange }) {
           <section>
             <h3 className="font-semibold mb-1">6. Contact</h3>
             <p>
-              For any inquiries, please contact us at <strong>support@visitrak.app</strong>.
+              For any inquiries, please contact us at support@visitrak.app.
             </p>
           </section>
         </Modal>
