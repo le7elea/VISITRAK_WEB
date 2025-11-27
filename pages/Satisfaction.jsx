@@ -42,7 +42,8 @@ export default function Satisfaction() {
         <div
           className="rounded-xl shadow-md w-full max-w-2xl p-6"
           style={{
-            background: "linear-gradient(to bottom, #e9dac4ff, #eaddc3ff, #d0c8baff)",
+            //background: "linear-gradient(to bottom, #e9dac4ff, #eaddc3ff, #d0c8baff)",
+            background: "white",
           }}
         >
           <h1 className="text-2xl font-bold mb-1">Give Feedback</h1>

@@ -56,10 +56,10 @@ export default function BoholAddressSelector({
   };
 
   return (
-    <div className="mt-3 w-full max-w-md">
+    <div className="mt-3 w-full max-w-7xl space-y-6">
       {/* Municipality Dropdown */}
       <div
-        className={`flex items-center bg-white rounded-lg px-2 py-2 mb-6 border-2 ${
+        className={`flex items-center bg-white rounded-lg px-2 py-2 border-2 ${
           errors?.homeAddress ? "border-red-500" : "border-gray-400"
         }`}
       >
@@ -82,7 +82,7 @@ export default function BoholAddressSelector({
       {/* Barangay Dropdown */}
       {municipality && (
         <div
-          className={`flex items-center bg-white rounded-lg px-2 py-2 mb-3 border-2 ${
+          className={`flex items-center bg-white rounded-lg px-2 py-2 border-2 ${
           errors?.homeAddress ? "border-red-500" : "border-gray-400"
         }`}
       >

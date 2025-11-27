@@ -20,10 +20,12 @@ import Footer from "../components/Footer";
 
 export default function VisiTrakForm() {
   const [fullName, setFullName] = useState("");
+  const [fullNameError, setFullNameError] = useState("");
   const [homeAddress, setHomeAddress] = useState("");
   const [purpose, setPurpose] = useState("");
   const [office, setOffice] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
+  const [contactNumber, setContactNumber] = useState("09");
+  const [contactNumberError, setContactNumberError] = useState("");
   const [email, setEmail] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -174,6 +176,8 @@ export default function VisiTrakForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setContactNumberError(""); // Clear previous errors on new submission attempt
+
     if (!agreeTerms) {
       alert("Please agree to the Terms and Conditions");
       return;
@@ -183,9 +187,19 @@ export default function VisiTrakForm() {
     const finalPurpose = purpose === "Other" ? otherPurpose : purpose;
     const finalOffice = office === "Other" ? otherOffice : office;
     
-    if (!fullName || !finalPurpose || !finalOffice || !contactNumber) {
-      alert("Please fill in all required fields");
-      return;
+    if (!fullName) {
+        setFullNameError("Full name is required.");
+        return;
+    }
+
+    if (!finalPurpose || !finalOffice) {
+        alert("Please fill in all required fields.");
+        return;
+    }
+
+    if (contactNumber.length !== 11) {
+        setContactNumberError("Contact number must be 11 digits long.");
+        return;
     }
 
     const exitKey = generateExitKey();
@@ -255,12 +269,26 @@ export default function VisiTrakForm() {
         className="flex-1 mt-16 px-4 md:px-16 lg:px-32"
       >
         <SectionCard title="Personal Information" icon={<FaUser />}>
+          {fullNameError && (
+            <p className="text-orange-700 text-md mb-3">{fullNameError}</p>
+          )}
           <InputField
             icon={<FaUser className="text-indigo-600" />}
             placeholder="Full Name"
             value={fullName}
-            onChange={(e) => setFullName(e.target.value.toUpperCase())}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (/[0-9]/.test(value)) {
+                setFullNameError("Full name cannot contain numbers.");
+              } else if (value.trim() === "" && value.length > 0) {
+                setFullNameError("Full name cannot be all spaces.");
+              } else {
+                setFullNameError("");
+                setFullName(value.toUpperCase());
+              }
+            }}
           />
+          
           <BoholAddressSelector
             homeAddress={homeAddress}
             setHomeAddress={setHomeAddress}
@@ -326,11 +354,34 @@ export default function VisiTrakForm() {
         </SectionCard>
 
         <SectionCard title="Contact Information" icon={<FaPhone />}>
+          {contactNumberError && (
+            <p className="text-orange-700 text-md  mt-1">{contactNumberError}</p>
+          )}
           <InputField
             icon={<FaPhone className="text-indigo-600" />}
             placeholder="Contact Number"
             value={contactNumber}
-            onChange={(e) => setContactNumber(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Only allow numbers and limit to 11 digits
+              if (/^[0-9]*$/.test(value)) {
+                if (value.length <= 11) {
+                  if (value.startsWith("09")) {
+                    setContactNumber(value);
+                  } else if (value.length <= 2) {
+                    setContactNumber("09");
+                  } else {
+                    setContactNumber("09" + value.substring(2));
+                  }
+                }
+              } else {
+                setContactNumberError("Contact number can only contain numbers.");
+              }
+              // Clear error on valid input as user types, will re-validate on submit
+              if (/^[0-9]{11}$/.test(value)) {
+                setContactNumberError("");
+              }
+            }}
           />
           <InputField
             icon={<FaEnvelope className="text-indigo-600" />}
