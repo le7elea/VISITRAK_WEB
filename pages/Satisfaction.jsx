@@ -35,7 +35,7 @@ export default function Satisfaction() {
   return (
     <div
       className="flex flex-col min-h-screen"
-      style={{ background: "linear-gradient(to bottom, #1A237E, #3949AB, #5C6BC0)" }}
+      style={{ background: "linear-gradient(to bottom, #381366, #4A2279, #573483)" }}
     >
       <Header />
       <main className="flex-grow flex justify-center p-4">
@@ -46,9 +46,9 @@ export default function Satisfaction() {
             background: "white",
           }}
         >
-          <h1 className="text-2xl font-bold mb-1">Give Feedback</h1>
+          <h1 className="text-2xl font-bold mb-1 text-center">Give Feedback</h1>
 
-          <p className="mb-4">
+          <p className="mb-8 text-center">
             Please rate our services:{" "}
             <span className="text-gray-500 text-sm">
               <i>(Note: Answer the satisfaction form <u>after visiting the office.</u>)</i>
@@ -75,17 +75,17 @@ export default function Satisfaction() {
             </div>
 
             {/* Exit Key with Icon */}
-            <div className="mb-2">Enter your Exit Key.</div>
-            <div className="flex items-center gap-2 mb-4 border rounded-md px-3 py-2">
-              <FaKey className="text-gray-400" size={20} />
-              <input
+            {/* <div className="mb-2">Enter your name: <i className="text-gray-500">(Your name will shown anonymously.)</i></div>
+            <div className="flex items-center gap-2 mb-4 border rounded-md px-3 py-2"> */}
+              {/* <FaKey className="text-gray-400" size={20} /> */}
+              {/* <input
                 type="text"
-                placeholder="Enter exit key..."
+                placeholder="Enter full name..."
                 value={exitKey}
                 onChange={(e) => setExitKey(e.target.value)}
                 className="flex-1 outline-none text-gray-700"
               />
-            </div>
+            </div> */}
 
             <button
               type="submit"

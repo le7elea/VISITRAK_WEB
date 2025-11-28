@@ -1,6 +1,6 @@
 import React from "react";
 import ThankYouCard from "../components/ThankYouCard";
-import thankYouBg from "../src/assets/thankYou_bg1.png"; // Background
+import thankYouBg from "../src/assets/TY2.png"; // Background
 import thankYouIllustration from "../src/assets/TY1.png"; // Illustration
 
 export default function ThankYou() {

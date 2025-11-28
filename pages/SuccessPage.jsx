@@ -5,14 +5,14 @@ import Footer from "../components/Footer";
 
 export default function SuccessPage() {
   const { state } = useLocation();
-  const { fullName, exitKey, checkInTime, office } = state || {};
+  const { fullName, checkInTime, office, homeAddress } = state || {};
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-900 via-indigo-700 to-indigo-500 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-[#381366] via-[#4A2279] to-[#573483] flex flex-col">
       <Header title="VisiTrak" />
       <SuccessCard
         name={fullName || "Guest Visitor"}
-        exitKey={exitKey || "N/A"}
+        address={homeAddress || "N/A"}
         checkIn={checkInTime || "N/A"}
         visiting={office || "N/A"}
       />
