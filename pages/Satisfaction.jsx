@@ -20,6 +20,7 @@ export default function Satisfaction() {
   const [answers, setAnswers] = useState({});
   const [suggestion, setSuggestion] = useState("");
   const [exitKey, setExitKey] = useState("");
+
   const navigate = useNavigate();
 
   const handleAnswer = (answer) => {
@@ -28,6 +29,29 @@ export default function Satisfaction() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const totalQuestions = questions.length;
+    const answeredQuestions = Object.keys(answers).length;
+
+    if (answeredQuestions !== totalQuestions) {
+      alert("Please complete all questions before submitting. Thank you!");
+      return;
+    }
+
+    const hasIncompleteRating = Object.values(answers).some(
+      (answer) => !answer.notApplicable && (answer.rating == null)
+    );
+
+    if (hasIncompleteRating) {
+      alert("Please rate all applicable questions before submitting. Thank you!");
+      return;
+    }
+
+    if (!exitKey.trim()) {
+      alert("Please enter your name before submitting.");
+      return;
+    }
+
     console.log({ answers, suggestion, exitKey });
     navigate("/thankyou");
   };
@@ -39,53 +63,51 @@ export default function Satisfaction() {
     >
       <Header />
       <main className="flex-grow flex justify-center p-4">
-        <div
-          className="rounded-xl shadow-md w-full max-w-2xl p-6"
-          style={{
-            //background: "linear-gradient(to bottom, #e9dac4ff, #eaddc3ff, #d0c8baff)",
-            background: "white",
-          }}
-        >
+        <div className="rounded-xl shadow-md w-full max-w-2xl p-6 bg-white">
           <h1 className="text-2xl font-bold mb-1 text-center">Give Feedback</h1>
 
-          <p className="mb-8 text-center">
-            Please rate our services:{" "}
-            <span className="text-gray-500 text-sm">
-              <i>(Note: Answer the satisfaction form <u>after visiting the office.</u>)</i>
-            </span>
+          <p className="mb-8 text-center text-gray-500 text-sm">
+            Please rate our services: <i>(Note: Answer after visiting the office.)</i>
           </p>
 
           <form onSubmit={handleSubmit}>
-            {questions.map((q, i) => (
-              <Question key={i} number={i + 1} text={q} onAnswer={handleAnswer} />
+            {questions.map((q, index) => (
+              <Question
+                key={index}
+                number={index + 1}
+                text={q}
+                onAnswer={handleAnswer}
+              />
             ))}
 
             <div className="mb-4">
               <TextField
-                label="Do you have any suggestions or comments to help us improve?"
+                label="Any suggestions to help us improve?"
                 placeholder="Write your suggestion here..."
                 value={suggestion}
                 onChange={setSuggestion}
                 type="textarea"
+                maxLength={300}
               />
-              {/* Character counter */}
               <p className="text-right text-gray-500 text-xs mt-1">
                 {suggestion.length}/300
               </p>
             </div>
 
-            {/* Exit Key with Icon */}
-            {/* <div className="mb-2">Enter your name: <i className="text-gray-500">(Your name will shown anonymously.)</i></div>
-            <div className="flex items-center gap-2 mb-4 border rounded-md px-3 py-2"> */}
-              {/* <FaKey className="text-gray-400" size={20} /> */}
-              {/* <input
+            <div className="mb-2">
+              Enter your name: <i className="text-gray-500">(Anonymous when viewed in system)</i>
+            </div>
+
+            <div className={`flex items-center gap-2 mb-4 border rounded-md px-3 py-2 ${!exitKey.trim() ? "border-red-500" : ""}`}>
+              <FaKey className="text-gray-400" size={20} />
+              <input
                 type="text"
                 placeholder="Enter full name..."
                 value={exitKey}
                 onChange={(e) => setExitKey(e.target.value)}
-                className="flex-1 outline-none text-gray-700"
+                className="flex-1 outline-none text-gray-700 border-none"
               />
-            </div> */}
+            </div>
 
             <button
               type="submit"

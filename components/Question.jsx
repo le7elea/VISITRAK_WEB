@@ -8,22 +8,26 @@ export default function Question({ number, text, onAnswer }) {
   const handleRating = (val) => {
     setRating(val);
     setNotApplicable(false);
+
     onAnswer({ number, rating: val, notApplicable: false });
   };
 
-  const handleNA = () => {
-    setNotApplicable(!notApplicable);
-    setRating(null);
-    onAnswer({ number, rating: null, notApplicable: !notApplicable });
+  const handleNAChange = (checked) => {
+    setNotApplicable(checked);
+
+    // Keep the last selected rating, just mark NA
+    onAnswer({ number, rating: rating, notApplicable: checked });
   };
 
   return (
     <div className="mb-6">
       <p className="mb-2 font-medium">{number}. {text}</p>
-      <div className="flex items-center space-x-4">
-        <EmojiRating value={rating} onChange={handleRating} />
-        
-      </div>
+      <EmojiRating
+        value={rating}
+        onChange={handleRating}
+        notApplicable={notApplicable}
+        onNotApplicableChange={handleNAChange}
+      />
     </div>
-  ); 
+  );
 }

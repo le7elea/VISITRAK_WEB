@@ -5,7 +5,7 @@ import {
   FaPhone,
   FaEnvelope,
   FaBuilding,
-  FaExclamationTriangle,
+  FaExclamationCircle,
 } from "react-icons/fa";
 import { IoNewspaperOutline, IoLocationOutline } from "react-icons/io5";
 
@@ -18,14 +18,23 @@ import TermsCheckbox from "../components/TermsCheckbox";
 import BoholAddressSelector from "../components/BoholAddressSelector";
 import Footer from "../components/Footer";
 
-// Constants
+// ============================================
+// CONSTANTS
+// ============================================
+// Purpose to Office mapping for filtering
 const PURPOSE_TO_OFFICE = {
   "COR/TOR": "REGISTRAR",
   "MEDICAL CHECKUP": "CLINIC",
+  "MEDICAL CERTIFICATE": "CLINIC",
+  "DENTAL CHECKUP": "CLINIC",
   "PAYMENT": "CASHIER",
-  "VISIT": "",
-  "SEMINAR / WEBINAR": "",
-  "Other": "",
+  "INQUIRY": null, // Multiple offices can handle inquiry
+  "ADVISING": null, // Multiple offices can handle advising
+  "CONSULTATION": null, // Multiple offices can handle consultation
+  "SUBMISSION OF REQUIREMENTS": "ADMIN OFFICE",
+  "VISIT": null,
+  "SEMINAR / WEBINAR": null,
+  "Other": null,
 };
 
 const OFFICE_STAFF_DATA = {
@@ -70,7 +79,15 @@ const OFFICE_TO_PURPOSE_MAP = {
   "CCJ FACULTY": ["INQUIRY", "ADVISING", "CONSULTATION", "Other"],
 };
 
-const DEFAULT_PURPOSES = ["COR/TOR", "MEDICAL CHECKUP", "PAYMENT", "VISIT", "SEMINAR / WEBINAR", "Other"];
+const DEFAULT_PURPOSES = [
+  "COR/TOR",
+  "MEDICAL CHECKUP",
+  "PAYMENT",
+  "VISIT",
+  "SEMINAR / WEBINAR",
+  "Other",
+];
+
 const OFFICES = [
   "REGISTRAR",
   "CLINIC",
@@ -87,7 +104,9 @@ const PHONE_LENGTH = 11;
 const EXIT_KEY_LENGTH = 6;
 const EXIT_KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-// Utility functions
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
 const generateExitKey = () => {
   return Array.from({ length: EXIT_KEY_LENGTH }, () =>
     EXIT_KEY_CHARS.charAt(Math.floor(Math.random() * EXIT_KEY_CHARS.length))
@@ -122,22 +141,211 @@ const validateFullName = (name) => {
   return { valid: true, error: "" };
 };
 
-export default function VisiTrakForm() {
-  // Form state
-  const [fullName, setFullName] = useState("");
-  const [homeAddress, setHomeAddress] = useState("");
+// ============================================
+// ENHANCED VISITOR INFO LOGIC HOOK
+// ============================================
+const useVisitorInfoLogic = () => {
   const [purpose, setPurpose] = useState("");
   const [office, setOffice] = useState("");
+  const [staffName, setStaffName] = useState("");
+  const [customPurpose, setCustomPurpose] = useState("");
+  const [customOffice, setCustomOffice] = useState("");
+
+  // All staff with their office info
+  const allStaffOptions = useMemo(
+    () =>
+      Object.entries(OFFICE_STAFF_DATA).flatMap(([office, staff]) =>
+        staff.map((s) => ({ ...s, office }))
+      ),
+    []
+  );
+
+  // Get selected staff object
+  const selectedStaffObject = useMemo(() => {
+    return allStaffOptions.find((s) => s.name === staffName) || null;
+  }, [staffName, allStaffOptions]);
+
+  // STEP 1: Determine available staff based on current selections
+  const filteredStaffOptions = useMemo(() => {
+    let filtered = allStaffOptions;
+
+    // Filter by office if selected and not "Other"
+    if (office && office !== "Other") {
+      filtered = filtered.filter((s) => s.office === office);
+    }
+
+    // Further filter by purpose if staff has specific purpose assignments
+    if (purpose && purpose !== "Other") {
+      const staffWithPurpose = filtered.filter((s) => s.purpose === purpose);
+      // Only apply purpose filter if there are staff with that specific purpose
+      if (staffWithPurpose.length > 0) {
+        filtered = staffWithPurpose;
+      }
+    }
+
+    return filtered;
+  }, [office, purpose, allStaffOptions]);
+
+  // STEP 2: Determine available offices based on current selections
+  const filteredOffices = useMemo(() => {
+    // Priority 1: If staff is selected, show only their office + Other
+    if (selectedStaffObject) {
+      return [selectedStaffObject.office, "Other"];
+    }
+
+    // Priority 2: If purpose has specific office, show only that office + Other
+    if (purpose && purpose !== "Other" && PURPOSE_TO_OFFICE[purpose]) {
+      return [PURPOSE_TO_OFFICE[purpose], "Other"];
+    }
+
+    // Default: Show all offices
+    return OFFICES;
+  }, [selectedStaffObject, purpose]);
+
+  // STEP 3: Determine available purposes based on current selections
+  const filteredPurposes = useMemo(() => {
+    // Priority 1: If staff is selected, show purposes allowed for their office
+    if (selectedStaffObject && OFFICE_TO_PURPOSE_MAP[selectedStaffObject.office]) {
+      return OFFICE_TO_PURPOSE_MAP[selectedStaffObject.office];
+    }
+
+    // Priority 2: If office is selected, show purposes allowed for that office
+    if (office && office !== "Other" && OFFICE_TO_PURPOSE_MAP[office]) {
+      return OFFICE_TO_PURPOSE_MAP[office];
+    }
+
+    // Default: Show all default purposes
+    return DEFAULT_PURPOSES;
+  }, [selectedStaffObject, office]);
+
+  // STEP 4: Determine if office field should be disabled
+  const isOfficeDisabled = useMemo(() => {
+    // Disabled if staff is selected (staff determines office)
+    if (selectedStaffObject) return true;
+    
+    // Disabled if purpose maps to a specific office
+    if (purpose && purpose !== "Other" && PURPOSE_TO_OFFICE[purpose]) return true;
+    
+    return false;
+  }, [selectedStaffObject, purpose]);
+
+  // STEP 5: Auto-fill office when purpose is selected (but only if no staff selected)
+  useEffect(() => {
+    // Don't auto-fill office if staff is already selected
+    if (staffName) return;
+
+    // Auto-fill office if purpose has a specific office mapping
+    if (purpose && purpose !== "Other" && PURPOSE_TO_OFFICE[purpose]) {
+      const mappedOffice = PURPOSE_TO_OFFICE[purpose];
+      if (mappedOffice && mappedOffice !== office) {
+        setOffice(mappedOffice);
+        setCustomOffice("");
+      }
+    }
+  }, [purpose, staffName]);
+
+  // STEP 6: Auto-fill office when staff is selected (NO AUTO-FILL PURPOSE)
+  useEffect(() => {
+    if (selectedStaffObject) {
+      // Auto-fill office only
+      if (selectedStaffObject.office !== office) {
+        setOffice(selectedStaffObject.office);
+        setCustomOffice("");
+      }
+
+      // DO NOT auto-fill purpose - let user choose
+    }
+  }, [staffName]);
+
+  // Event Handlers
+  const handlePurposeChange = useCallback((e) => {
+    const selectedPurpose = e.target.value;
+    setPurpose(selectedPurpose);
+
+    // Clear custom purpose if not "Other"
+    if (selectedPurpose !== "Other") {
+      setCustomPurpose("");
+    }
+
+    // DON'T clear staff when purpose changes
+    // Staff can have multiple purposes or no specific purpose
+  }, []);
+
+  const handleOfficeChange = useCallback((e) => {
+    const selectedOffice = e.target.value;
+    setOffice(selectedOffice);
+
+    // Clear custom office if not "Other"
+    if (selectedOffice !== "Other") {
+      setCustomOffice("");
+    }
+
+    // Clear staff only if they don't belong to the selected office
+    if (selectedStaffObject && 
+        selectedStaffObject.office !== selectedOffice && 
+        selectedOffice !== "Other") {
+      setStaffName("");
+    }
+  }, [selectedStaffObject]);
+
+  const handleStaffChange = useCallback((e) => {
+    const value = e.target.value;
+    setStaffName(value);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setPurpose("");
+    setOffice("");
+    setStaffName("");
+    setCustomPurpose("");
+    setCustomOffice("");
+  }, []);
+
+  const getFinalValues = useCallback(() => {
+    const finalPurpose = purpose === "Other" ? customPurpose.trim() : purpose;
+    const finalOffice = office === "Other" ? customOffice.trim() : office;
+
+    return {
+      purpose: finalPurpose,
+      office: finalOffice,
+      staffName,
+      isValid: !!finalPurpose && !!finalOffice,
+    };
+  }, [purpose, customPurpose, office, customOffice, staffName]);
+
+  return {
+    purpose,
+    office,
+    staffName,
+    customPurpose,
+    customOffice,
+    filteredPurposes,
+    filteredOffices,
+    filteredStaffOptions,
+    handlePurposeChange,
+    handleOfficeChange,
+    handleStaffChange,
+    setCustomPurpose,
+    setCustomOffice,
+    handleReset,
+    isOfficeDisabled,
+    getFinalValues,
+  };
+};
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
+export default function VisiTrakForm() {
+  // Personal Information State
+  const [fullName, setFullName] = useState("");
+  const [homeAddress, setHomeAddress] = useState("");
   const [contactNumber, setContactNumber] = useState(PHONE_PREFIX);
   const [email, setEmail] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [customPurpose, setCustomPurpose] = useState("");
-  const [customOffice, setCustomOffice] = useState("");
-  const [staffName, setStaffName] = useState("");
-  const [firstFilled, setFirstFilled] = useState(null);
   const [showResetModal, setShowResetModal] = useState(false);
 
-  // Error state
+  // Error State
   const [errors, setErrors] = useState({
     fullName: "",
     contactNumber: "",
@@ -147,43 +355,25 @@ export default function VisiTrakForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Memoized values
-  const allStaffOptions = useMemo(
-    () =>
-      Object.entries(OFFICE_STAFF_DATA).flatMap(([office, staff]) =>
-        staff.map((s) => ({ ...s, office }))
-      ),
-    []
-  );
-
-  // Calculate filtered purposes based on current state
-  const filteredPurposes = useMemo(() => {
-    if (staffName) {
-      const selectedStaff = allStaffOptions.find((s) => s.name === staffName);
-      if (selectedStaff?.purpose) {
-        return [selectedStaff.purpose, "Other"];
-      }
-      if (selectedStaff && OFFICE_TO_PURPOSE_MAP[selectedStaff.office]) {
-        return OFFICE_TO_PURPOSE_MAP[selectedStaff.office];
-      }
-    }
-
-    if (office && office !== "Other" && OFFICE_TO_PURPOSE_MAP[office]) {
-      return OFFICE_TO_PURPOSE_MAP[office];
-    }
-
-    return DEFAULT_PURPOSES;
-  }, [staffName, office, allStaffOptions]);
-
-  // Calculate filtered staff based on selected office
-  const filteredStaffOptions = useMemo(() => {
-    if (office && office !== "Other") {
-      return allStaffOptions.filter((s) => s.office === office);
-    }
-    return allStaffOptions;
-  }, [office, allStaffOptions]);
-
-  const isOfficeAutoAssigned = PURPOSE_TO_OFFICE[purpose] !== undefined && PURPOSE_TO_OFFICE[purpose] !== "";
+  // Visitor Info Logic
+  const {
+    purpose,
+    office,
+    staffName,
+    customPurpose,
+    customOffice,
+    filteredPurposes,
+    filteredOffices,
+    filteredStaffOptions,
+    handlePurposeChange,
+    handleOfficeChange,
+    handleStaffChange,
+    setCustomPurpose,
+    setCustomOffice,
+    handleReset,
+    isOfficeDisabled,
+    getFinalValues,
+  } = useVisitorInfoLogic();
 
   // Handle redirect on mount
   useEffect(() => {
@@ -195,49 +385,7 @@ export default function VisiTrakForm() {
     }
   }, [searchParams, navigate]);
 
-  // Handle staff selection effects - DO NOT auto-set purpose
-  useEffect(() => {
-    if (staffName) {
-      const selectedStaff = allStaffOptions.find((s) => s.name === staffName);
-      if (selectedStaff) {
-        setOffice(selectedStaff.office);
-        setCustomOffice("");
-        
-        // Clear purpose to force user selection
-        setPurpose("");
-        setCustomPurpose("");
-      }
-    }
-  }, [staffName, allStaffOptions]);
-
-  // Auto-set purpose when office changes and no staff is selected
-  useEffect(() => {
-    if (!staffName && office && office !== "Other") {
-      if (OFFICE_TO_PURPOSE_MAP[office]) {
-        const newPurposes = OFFICE_TO_PURPOSE_MAP[office];
-        // Auto-set to first purpose if current purpose is not in the list
-        if (!purpose || !newPurposes.includes(purpose)) {
-          setPurpose(newPurposes[0]);
-          setCustomPurpose("");
-        }
-      }
-    }
-  }, [office, staffName, purpose]);
-
-  // Track which field was filled first
-  useEffect(() => {
-    if (!firstFilled) {
-      if (staffName) setFirstFilled("staff");
-      else if (purpose) setFirstFilled("purpose");
-    }
-
-    // Reset when both are empty
-    if (!staffName && !purpose && firstFilled) {
-      setFirstFilled(null);
-    }
-  }, [staffName, purpose, firstFilled]);
-
-  // Event handlers
+  // Event Handlers
   const handleFullNameChange = useCallback((e) => {
     const value = e.target.value;
     const validation = validateFullName(value);
@@ -275,10 +423,10 @@ export default function VisiTrakForm() {
 
   const handleEmailChange = useCallback((e) => {
     let value = e.target.value;
-    
+
     // Auto-append @gmail.com
-    if (value.endsWith('@')) {
-      value += 'gmail.com';
+    if (value.endsWith("@")) {
+      value += "gmail.com";
     }
 
     setEmail(value);
@@ -287,73 +435,10 @@ export default function VisiTrakForm() {
     setErrors((prev) => ({ ...prev, email: validation.error }));
   }, []);
 
-  const handlePurposeChange = useCallback(
-    (e) => {
-      const selectedPurpose = e.target.value;
-      setPurpose(selectedPurpose);
-
-      if (selectedPurpose !== "Other") {
-        const matchedOffice = PURPOSE_TO_OFFICE[selectedPurpose] || "";
-        setOffice(matchedOffice);
-        setCustomPurpose("");
-      }
-
-      if (!firstFilled) {
-        setFirstFilled("purpose");
-      }
-
-      if (firstFilled !== "staff") {
-        setStaffName("");
-      }
-    },
-    [firstFilled]
-  );
-
-  const handleOfficeChange = useCallback(
-    (e) => {
-      const selectedOffice = e.target.value;
-
-      if (!isOfficeAutoAssigned && !(firstFilled === "staff" && !!staffName)) {
-        setOffice(selectedOffice);
-
-        if (selectedOffice !== "Other") {
-          setCustomOffice("");
-        }
-
-        setStaffName("");
-      }
-    },
-    [isOfficeAutoAssigned, firstFilled, staffName]
-  );
-
-  const handleStaffChange = useCallback(
-    (e) => {
-      const value = e.target.value;
-      setStaffName(value);
-
-      if (!firstFilled && value) {
-        setFirstFilled("staff");
-      }
-
-      // When clearing staff selection
-      if (firstFilled !== "purpose" && !value) {
-        setPurpose("");
-        setCustomPurpose("");
-        setCustomOffice("");
-      }
-    },
-    [firstFilled]
-  );
-
   const handleResetVisitorInfo = useCallback(() => {
-    setStaffName("");
-    setOffice("");
-    setPurpose("");
-    setCustomOffice("");
-    setCustomPurpose("");
-    setFirstFilled(null);
+    handleReset();
     setShowResetModal(false);
-  }, []);
+  }, [handleReset]);
 
   const handleSubmit = useCallback(
     (e) => {
@@ -375,13 +460,12 @@ export default function VisiTrakForm() {
         return;
       }
 
-      // Determine final values
-      const finalPurpose = purpose === "Other" ? customPurpose.trim() : purpose;
-      const finalOffice = office === "Other" ? customOffice.trim() : office;
+      // Get final visitor info values
+      const { purpose: finalPurpose, office: finalOffice, staffName: finalStaff, isValid } = getFinalValues();
 
       // Validate required fields
-      if (!finalPurpose || !finalOffice) {
-        alert("Please fill in all required fields.");
+      if (!isValid) {
+        alert("Please fill in all required fields (Purpose and Office).");
         return;
       }
 
@@ -424,7 +508,7 @@ export default function VisiTrakForm() {
           email,
           checkInTime,
           exitKey,
-          staffName,
+          staffName: finalStaff,
         },
       });
     },
@@ -438,7 +522,7 @@ export default function VisiTrakForm() {
       contactNumber,
       email,
       homeAddress,
-      staffName,
+      getFinalValues,
       navigate,
     ]
   );
@@ -453,6 +537,7 @@ export default function VisiTrakForm() {
       <Header headerBg={headerBg} />
 
       <form onSubmit={handleSubmit} className="flex-1 mt-16 px-4 md:px-16 lg:px-32">
+        {/* Personal Information Section */}
         <SectionCard title="Personal Information" icon={<FaUser />}>
           {errors.fullName && <p className="text-orange-400 text-sm mb-3">{errors.fullName}</p>}
           <InputField
@@ -467,38 +552,10 @@ export default function VisiTrakForm() {
           <BoholAddressSelector homeAddress={homeAddress} setHomeAddress={setHomeAddress} />
         </SectionCard>
 
+        {/* Visitor Information Section */}
         <SectionCard title="Visitor Information" icon={<IoLocationOutline />}>
-          <SelectField
-            icon={<FaUser className="text-indigo-600" />}
-            value={staffName}
-            onChange={handleStaffChange}
-            options={filteredStaffOptions.map((s) => s.name)}
-            placeholder="Staff / Instructor Name (optional)"
-            aria-label="Staff Name"
-          />
 
-          <SelectField
-            icon={<FaBuilding className="text-indigo-600" />}
-            value={office}
-            onChange={handleOfficeChange}
-            options={OFFICES}
-            placeholder="Office to Visit"
-            disabled={!!staffName || isOfficeAutoAssigned}
-            aria-label="Office"
-            required
-          />
-
-          {office === "Other" && !isOfficeAutoAssigned && (
-            <InputField
-              icon={<FaBuilding className="text-indigo-600" />}
-              placeholder="Please specify the office"
-              value={customOffice}
-              onChange={(e) => setCustomOffice(e.target.value.toUpperCase())}
-              aria-label="Custom Office"
-              required
-            />
-          )}
-
+          {/* Purpose of Visit - THIRD FIELD */}
           <SelectField
             icon={<IoNewspaperOutline className="text-indigo-600" />}
             value={purpose}
@@ -519,14 +576,42 @@ export default function VisiTrakForm() {
               required
             />
           )}
+          
 
+          {/* Office to Visit - SECOND FIELD */}
+          <SelectField
+            icon={<FaBuilding className="text-indigo-600" />}
+            value={office}
+            onChange={handleOfficeChange}
+            options={filteredOffices}
+            placeholder="Office to Visit"
+            disabled={isOfficeDisabled}
+            aria-label="Office"
+            required
+          />
+
+          {office === "Other" && (
+            <InputField
+              icon={<FaBuilding className="text-indigo-600" />}
+              placeholder="Please specify the office"
+              value={customOffice}
+              onChange={(e) => setCustomOffice(e.target.value.toUpperCase())}
+              aria-label="Custom Office"
+              required
+            />
+          )}
+
+          
+          
+
+          {/* Reset Button */}
           <div className="flex justify-end mt-3">
             <button
               type="button"
               onClick={() => setShowResetModal(true)}
               className="px-4 py-2 text-sm bg-red-400/0 text-orange-400 border border-orange-600 rounded-lg hover:bg-red-600/30 transition"
             >
-              Reset 
+              Reset
             </button>
           </div>
         </SectionCard>
@@ -537,9 +622,9 @@ export default function VisiTrakForm() {
             <div className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl">
               <div className="flex flex-col items-center mb-4">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-3">
-                  <FaExclamationTriangle className="text-red-600 text-3xl" />
+                  <FaExclamationCircle className="text-red-600 text-3xl" />
                 </div>
-              
+                <h3 className="text-xl font-bold text-gray-800">Reset Visitor Information?</h3>
               </div>
               <p className="text-gray-600 mb-6 text-center">
                 Are you sure you want to reset all visitor information fields?
@@ -564,6 +649,7 @@ export default function VisiTrakForm() {
           </div>
         )}
 
+        {/* Contact Information Section */}
         <SectionCard title="Contact Information" icon={<FaPhone />}>
           {errors.contactNumber && (
             <p className="text-orange-400 text-sm mb-3">{errors.contactNumber}</p>
@@ -588,9 +674,10 @@ export default function VisiTrakForm() {
           />
         </SectionCard>
 
+        {/* Terms and Submit */}
         <TermsCheckbox
           checked={agreeTerms}
-          onChange={() => setAgreeTerms(!agreeTerms)}
+          onChange={() => setAgreeTerms(!agreeTerms)}a
           onOpenTerms={() => {}}
         />
 
