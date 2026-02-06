@@ -58,11 +58,11 @@ export default function SuccessCard({ name, address, checkIn, visiting }) {
       </div>
 
       {/* Satisfaction Button */}
-      <button 
+      {/* <button 
         onClick={() => navigate("/exit")}
         className="w-full mt-6 py-2.5 sm:py-3 rounded-lg bg-indigo-900 text-white font-bold text-sm sm:text-base hover:bg-indigo-800 transition flex justify-center items-center gap-2">
           CHECK OUT →
-      </button>
+      </button> */}
 
     </div>
   );
