@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 - Page Not Found</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(180deg, #381366 0%, #4A2279 50%, #573483 100%);
+        color: #f8fafc;
+      }
+      .card {
+        width: min(92vw, 520px);
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 28px 24px;
+        text-align: center;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(8px);
+      }
+      .code {
+        font-size: clamp(2.5rem, 5vw, 3.25rem);
+        font-weight: 800;
+        letter-spacing: 1px;
+        margin: 0 0 6px;
+      }
+      .title {
+        font-size: clamp(1.1rem, 2.8vw, 1.5rem);
+        font-weight: 700;
+        margin: 0 0 12px;
+      }
+      .desc {
+        margin: 0 0 20px;
+        color: rgba(248, 250, 252, 0.9);
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-weight: 700;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+        font-size: 0.95rem;
+      }
+      .btn-primary {
+        background: linear-gradient(90deg, #7a2ff2, #5a2bd8);
+        color: white;
+      }
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.35);
+        color: #f8fafc;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+      .hint {
+        margin-top: 14px;
+        font-size: 0.8rem;
+        color: rgba(248, 250, 252, 0.7);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card" role="main" aria-live="polite">
+      <div class="code">404</div>
+      <h1 class="title">Page Not Found</h1>
+      <p class="desc">
+        The page you are looking for does not exist or is not available.
+      </p>
+      <div class="actions">
+        <a class="btn btn-primary" href="/exit">Go to Exit</a>
+        <a class="btn btn-secondary" href="/">Go to Home</a>
+      </div>
+      <div class="hint">If you typed the URL, please check the spelling.</div>
+    </main>
+  </body>
+</html>

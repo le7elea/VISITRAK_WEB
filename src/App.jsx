@@ -7,24 +7,24 @@ import ThankYou from "../pages/ThankYou";
 import ExitScreen from "../pages/ExitScreen";
 import SuccessModal from "../pages/SuccessModal";
 
-function HomeRoute() {
-  const location = useLocation();
-  const navigate = useNavigate();
+// function HomeRoute() {
+//   const location = useLocation();
+//   const navigate = useNavigate();
 
-  useEffect(() => {
-    const redirect = new URLSearchParams(location.search).get("redirect");
-    if (!redirect) return;
+//   useEffect(() => {
+//     const redirect = new URLSearchParams(location.search).get("redirect");
+//     if (!redirect) return;
 
-    const normalized = redirect.startsWith("/") ? redirect : `/${redirect}`;
-    const allowed = new Set(["/exit"]);
+//     const normalized = redirect.startsWith("/") ? redirect : `/${redirect}`;
+//     const allowed = new Set(["/exit"]);
 
-    if (allowed.has(normalized)) {
-      navigate(normalized, { replace: true });
-    }
-  }, [location.search, navigate]);
+//     if (allowed.has(normalized)) {
+//       navigate(normalized, { replace: true });
+//     }
+//   }, [location.search, navigate]);
 
-  return <VisiTrakForm />;
-}
+//   return <VisiTrakForm />;
+// }
 
 export default function App() {
   return (
