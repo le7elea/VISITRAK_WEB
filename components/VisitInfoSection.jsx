@@ -326,12 +326,12 @@ const VisitInfoSection = forwardRef(({
   // Loading state
   if (isLoading) {
     return (
-      <section className="mt-8 sm:mt-10 px-0">
+      <section className="mt-6 sm:mt-8 px-0">
         <SectionTitle 
           icon={<MapPin size={20} />} 
           text="Visit Information" 
         />
-        <div className="mt-2 rounded-xl border border-[#6b4fae] bg-[#4b2a78]/60 p-6 text-center text-white">
+        <div className="mt-3 bg-[#5b3b8f]/70 backdrop-blur-md border border-[#8b6fd6] rounded-2xl p-5 sm:p-6 text-center text-white">
           Loading offices and staff…
         </div>
       </section>
@@ -341,12 +341,12 @@ const VisitInfoSection = forwardRef(({
   // No data state
   if (!offices.length) {
     return (
-      <section className="mt-8 sm:mt-10 px-0">
+      <section className="mt-6 sm:mt-8 px-0">
         <SectionTitle 
           icon={<MapPin size={20} />} 
           text="Visit Information" 
         />
-        <div className="mt-2 rounded-xl border border-[#6b4fae] bg-[#4b2a78]/60 p-6 text-center">
+        <div className="mt-3 bg-[#5b3b8f]/70 backdrop-blur-md border border-[#8b6fd6] rounded-2xl p-5 sm:p-6 text-center">
           <AlertCircle className="mx-auto mb-2 h-10 w-10 text-red-400" />
           <p className="text-white">
             No visitor offices available. Please contact the administrator.
@@ -358,13 +358,13 @@ const VisitInfoSection = forwardRef(({
 
   return (
     <>
-      <section className="mt-8 sm:mt-10 px-0">
+      <section className="mt-6 sm:mt-8 px-0">
         <SectionTitle 
           icon={<MapPin size={20} />} 
           text="Visit Information" 
         />
         
-        <div className="mt-2 rounded-xl border-2 border-[#6b4fae] bg-[#4b2a78]/60 p-4 sm:p-5 lg:p-6">
+        <div className="mt-3 bg-[#5b3b8f]/70 backdrop-blur-md border border-[#8b6fd6] rounded-2xl p-5 sm:p-6">
           {/* Staff Selection */}
           <SelectField
             ref={staffFieldRef}

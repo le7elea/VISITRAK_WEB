@@ -64,9 +64,6 @@ export default function SuccessCard({ name, address, checkIn, visiting }) {
           CHECK OUT →
       </button>
 
-      <p className="text-xs text-gray-300 text-center mt-2">
-        Note : Answer the Satisfaction Form after Visiting the office.
-      </p>
     </div>
   );
 }
