@@ -16,7 +16,7 @@ function HomeRoute() {
     if (!redirect) return;
 
     const normalized = redirect.startsWith("/") ? redirect : `/${redirect}`;
-    const allowed = new Set(["/exit", "/satisfaction"]);
+    const allowed = new Set(["/exit"]);
 
     if (allowed.has(normalized)) {
       navigate(normalized, { replace: true });
