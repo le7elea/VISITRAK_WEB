@@ -6,7 +6,7 @@ import thankYouIllustration from "../src/assets/TY1.png"; // Illustration
 export default function ThankYou() {
   return (
     <div
-      className="flex items-center justify-center min-h-screen bg-cover bg-center p-4"
+      className="flex items-center justify-center min-h-screen bg-cover bg-center p-4 sm:p-6"
       style={{ backgroundImage: `url(${thankYouBg})` }}
     >
       <ThankYouCard

@@ -1,11 +1,29 @@
-export default function SelectField({ icon, value, onChange, options, placeholder, disabled }) {
+export default function SelectField({
+  icon,
+  value,
+  onChange,
+  options,
+  placeholder,
+  disabled = false,
+  hasError = false,
+}) {
+  const handleChange = (e) => {
+    if (onChange) onChange(e.target.value);
+  };
+
   return (
-    <div className="flex items-center gap-3 bg-white rounded-lg px-3 py-2">
-      {icon}
+    <div
+      className={`flex items-center gap-3 rounded-md border px-3 py-2 bg-[#e9e2f5] ${
+        hasError ? "border-red-400" : "border-[#cbb7ec]"
+      } ${disabled ? "opacity-60" : ""}`}
+    >
+      <span className="text-[#6b4fb3]">{icon}</span>
       <select
         value={value}
-        onChange={onChange}
-        className={`w-full outline-none bg-transparent ${disabled ? "text-gray-500" : ""}`}
+        onChange={handleChange}
+        className={`w-full outline-none bg-transparent text-[#2f2450] ${
+          disabled ? "text-[#6d5f88]" : ""
+        }`}
         disabled={disabled}
       >
         <option value="">{placeholder}</option>

@@ -1,119 +1,204 @@
-import { useState, useEffect } from "react";
-import { IoMapOutline, IoLocationOutline } from "react-icons/io5";
+import React, {
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+} from "react";
+import { FaHome, FaMapMarkerAlt } from "react-icons/fa";
+import { ChevronDown } from "lucide-react";
 
-// Dummy data utilities (replace with your real boholAddressData.js)
 import {
   getMunicipalities,
   getBarangays,
   formatAddressForDB,
 } from "../src/data/boholAddressData";
 
-export default function BoholAddressSelector({
-  homeAddress,
-  setHomeAddress,
-  errors,
-  onAddressChange,
-}) {
-  const [municipality, setMunicipality] = useState("");
-  const [barangay, setBarangay] = useState("");
+const BoholAddressSelector = forwardRef(
+  (
+    {
+      homeAddress,
+      setHomeAddress,
+      errors,
+      onAddressChange,
+      onAddressPartsChange,
+      onSubmitEditing,
+    },
+    ref
+  ) => {
+    const [municipality, setMunicipality] = useState("");
+    const [barangay, setBarangay] = useState("");
 
-  const municipalities = getMunicipalities();
-  const barangayList = municipality ? getBarangays(municipality) : [];
+    const municipalityRef = useRef(null);
+    const barangayRef = useRef(null);
 
-  useEffect(() => {
-    if (municipality && barangay) {
-      const fullAddress = `${barangay}, ${municipality}, Bohol`;
-      setHomeAddress(fullAddress);
+    const municipalities = getMunicipalities();
+    const barangayList = municipality ? getBarangays(municipality) : [];
 
-      if (onAddressChange) {
-        const dbFormat = formatAddressForDB(municipality, barangay);
-        onAddressChange(dbFormat);
+    /* ---------------- EXPOSE FOCUS ---------------- */
+    useImperativeHandle(ref, () => ({
+      focus: () => {
+        municipalityRef.current?.focus();
+      },
+    }));
+
+    /* ---------------- EFFECTS ---------------- */
+    useEffect(() => {
+      onAddressPartsChange?.({ municipality, barangay });
+
+      if (municipality && barangay) {
+        const fullAddress = `${barangay}, ${municipality}, Bohol`;
+        setHomeAddress(fullAddress);
+
+        if (onAddressChange) {
+          const dbFormat = formatAddressForDB(municipality, barangay);
+          onAddressChange(dbFormat);
+        }
+
+        onSubmitEditing?.();
+      } else {
+        setHomeAddress("");
+        onAddressChange?.(null);
       }
-    } else {
-      setHomeAddress("");
-      if (onAddressChange) onAddressChange(null);
-    }
-  }, [municipality, barangay]);
+    }, [municipality, barangay]);
 
-  useEffect(() => {
-    if (homeAddress && !municipality && !barangay) {
-      const parts = homeAddress.split(", ");
-      if (parts.length >= 2) {
-        const [brgy, mun] = parts;
-        setBarangay(brgy);
-        setMunicipality(mun);
+    useEffect(() => {
+      if (homeAddress && !municipality && !barangay) {
+        const parts = homeAddress.split(", ");
+        if (parts.length >= 2) {
+          setBarangay(parts[0]);
+          setMunicipality(parts[1]);
+        }
       }
-    }
-  }, []);
+    }, []);
 
-  const handleMunicipalityChange = (e) => {
-    setMunicipality(e.target.value);
-    setBarangay("");
-  };
+    /* ---------------- HANDLERS ---------------- */
+    const handleMunicipalityChange = (e) => {
+      setMunicipality(e.target.value);
+      setBarangay("");
 
-  const handleBarangayChange = (e) => {
-    setBarangay(e.target.value);
-  };
+      setTimeout(() => {
+        barangayRef.current?.focus();
+      }, 200);
+    };
 
-  return (
-    <div className="mt-3 w-full max-w-7xl space-y-6">
-      {/* Municipality Dropdown */}
-      <div
-        className={`flex items-center bg-white rounded-lg px-2 py-2 border-2 ${
-          errors?.homeAddress ? "border-red-500" : "border-gray-400"
-        }`}
-      >
-        <IoMapOutline className="text-indigo-700 mr-1.5 text-xl" />
+    const handleBarangayChange = (e) => {
+      setBarangay(e.target.value);
+    };
 
-        <select
-          value={municipality}
-          onChange={handleMunicipalityChange}
-          className="w-full bg-transparent text-gray-900 focus:outline-none"
-        >
-          <option value="">Select Municipality</option>
-          {municipalities.map((mun) => (
-            <option key={mun} value={mun}>
-              {mun}
-            </option>
-          ))}
-        </select>
-      </div>
+    /* ---------------- UI ---------------- */
+    return (
+      <div className="mt-4 space-y-4">
+        {/* MUNICIPALITY */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+            <FaHome className="text-indigo-500" size={16} />
+          </div>
 
-      {/* Barangay Dropdown */}
-      {municipality && (
-        <div
-          className={`flex items-center bg-white rounded-lg px-2 py-2 border-2 ${
-          errors?.homeAddress ? "border-red-500" : "border-gray-400"
-        }`}
-      >
-        <IoLocationOutline className="text-indigo-700 mr-1.5 text-xl" />          <select
-            value={barangay}
-            onChange={handleBarangayChange}
-            disabled={barangayList.length === 0}
-            className="w-full bg-transparent text-gray-900 focus:outline-none"
+          <select
+            ref={municipalityRef}
+            value={municipality}
+            onChange={handleMunicipalityChange}
+            className={`
+              w-full h-11 sm:h-12
+              pl-11 pr-10
+              rounded-xl
+              bg-[#e7def4]
+              text-[#2f2450]
+              text-sm sm:text-base
+              appearance-none
+              border
+              ${
+                errors?.homeAddress
+                  ? "border-red-400 focus:ring-red-400"
+                  : "border-transparent focus:ring-indigo-400"
+              }
+              focus:outline-none focus:ring-2
+              transition
+            `}
           >
-            <option value="">Select Barangay</option>
-            {barangayList.map((brgy) => (
-              <option key={brgy} value={brgy}>
-                {brgy}
+            <option value="">Select Municipality</option>
+            {municipalities.map((mun) => (
+              <option key={mun} value={mun}>
+                {mun}
               </option>
             ))}
           </select>
-        </div>
-      )}
 
-      {/* Selected Address Display */}
-      {municipality && barangay && (
-        <div className="mt-4 p-3 bg-indigo-100 rounded-md border-l-4 border-indigo-500">
-          <p className="text-black text-xs mb-1 font-medium">Selected Address:</p>
-          <p className="text-black text-sm font-semibold">{homeAddress}</p>
+          <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+            <ChevronDown size={18} className="text-[#5c4a87]" />
+          </div>
         </div>
-      )}
 
-      {/* Error Message */}
-      {errors?.homeAddress && (
-        <p className="text-red-500 mt-2 text-sm">{errors.homeAddress}</p>
-      )}
-    </div>
-  );
-}
+        {/* BARANGAY */}
+        {municipality && (
+          <div className="relative">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+              <FaMapMarkerAlt className="text-indigo-500" size={16} />
+            </div>
+
+            <select
+              ref={barangayRef}
+              value={barangay}
+              onChange={handleBarangayChange}
+              className={`
+                w-full h-11 sm:h-12
+                pl-11 pr-10
+                rounded-xl
+                bg-[#e7def4]
+                text-[#2f2450]
+                text-sm sm:text-base
+                border
+                appearance-none
+                ${
+                  errors?.homeAddress
+                    ? "border-red-400 focus:ring-red-400"
+                    : "border-transparent focus:ring-indigo-400"
+                }
+                focus:outline-none focus:ring-2
+                transition
+              `}
+            >
+              <option value="">Select Barangay</option>
+              {barangayList.map((brgy) => (
+                <option key={brgy} value={brgy}>
+                  {brgy}
+                </option>
+              ))}
+            </select>
+
+            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+              <ChevronDown size={18} className="text-[#5c4a87]" />
+            </div>
+          </div>
+        )}
+
+        {/* SELECTED ADDRESS */}
+        {municipality && barangay && (
+          <div className="
+            bg-[#e7def4]
+            rounded-xl
+            p-3
+            border-l-4 border-indigo-500
+          ">
+            <p className="text-xs font-semibold text-[#4b3a6a]">
+              Selected Address:
+            </p>
+            <p className="text-sm font-medium text-[#2f2450]">
+              {homeAddress}
+            </p>
+          </div>
+        )}
+
+        {/* ERROR */}
+        {errors?.homeAddress && (
+          <p className="text-sm text-red-500">
+            {errors.homeAddress}
+          </p>
+        )}
+      </div>
+    );
+  }
+);
+
+export default BoholAddressSelector;

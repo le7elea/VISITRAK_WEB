@@ -1,54 +1,141 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
-  IoSadOutline, IoSad, IoHappyOutline, IoHappy 
-} from "react-icons/io5";
-import { 
-  MdOutlineSentimentNeutral, MdSentimentNeutral, 
-  MdOutlineSentimentDissatisfied, MdSentimentDissatisfied 
+  MdSentimentVeryDissatisfied, 
+  MdSentimentDissatisfied,
+  MdSentimentNeutral,
+  MdSentimentSatisfied,
+  MdSentimentVerySatisfied
 } from "react-icons/md";
-import { FaRegSmile, FaSmile } from "react-icons/fa";
+import { LuCheck } from "react-icons/lu";
 
-export default function EmojiRating({ value, onChange, notApplicable, onNotApplicableChange }) {
-  const icons = [
-    { inactive: <IoSadOutline />, active: <IoSad />, label: "Very Dissatisfied" },
-    { inactive: <MdOutlineSentimentDissatisfied />, active: <MdSentimentDissatisfied />, label: "Dissatisfied" },
-    { inactive: <MdOutlineSentimentNeutral />, active: <MdSentimentNeutral />, label: "Neutral" },
-    { inactive: <IoHappyOutline />, active: <IoHappy />, label: "Satisfied" },
-    { inactive: <FaRegSmile />, active: <FaSmile />, label: "Very Satisfied" },
-  ];
+const satisfactionLabels = [
+  "Very unsatisfied (1)",
+  "Unsatisfied (2)",
+  "Neutral (3)",
+  "Satisfied (4)",
+  "Very Satisfied (5)",
+];
+
+const icons = [
+  { 
+    Component: MdSentimentVeryDissatisfied,
+    value: 1,
+    color: "#ef4444"
+  },
+  { 
+    Component: MdSentimentDissatisfied,
+    value: 2,
+    color: "#f97316"
+  },
+  { 
+    Component: MdSentimentNeutral,
+    value: 3,
+    color: "#eab308"
+  },
+  { 
+    Component: MdSentimentSatisfied,
+    value: 4,
+    color: "#22c55e"
+  },
+  { 
+    Component: MdSentimentVerySatisfied,
+    value: 5,
+    color: "#3b82f6"
+  },
+];
+
+const EmojiRating = ({ value, onChange }) => {
+  const [notApplicable, setNotApplicable] = useState(false);
+
+  const handleEmojiPress = (selectedValue) => {
+    setNotApplicable(false);
+    onChange(selectedValue);
+  };
+
+  const handleNotApplicable = () => {
+    setNotApplicable((prev) => {
+      const next = !prev;
+      if (next) onChange(null);
+      return next;
+    });
+  };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 gap-4 w-full justify-center">
-      <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-        {icons.map((icon, index) => {
-          const isActive = value === index + 1;
-          return (
-            <button
-              key={index}
-              type="button"
-              disabled={notApplicable} // disable clicks when NA is checked
-              onClick={() => onChange(index + 1)}
-              className={`p-2 rounded-full transition-all duration-200 
-                ${isActive 
-                  ? "bg-indigo-100 text-indigo-600 scale-110" 
-                  : "text-gray-500 opacity-70 hover:opacity-100 hover:scale-105"
-                } sm:p-3 sm:text-2xl text-xl cursor-pointer ${notApplicable ? "opacity-50 cursor-not-allowed" : ""}`}
-            >
-              {isActive ? icon.active : icon.inactive}
-            </button>
-          );
-        })}
+    <div className="flex flex-col items-center w-full">
+      {/* Container for all emojis and checkbox */}
+      <div className="flex flex-col md:flex-row items-center justify-center w-full px-3 sm:px-4 md:px-6 gap-3 sm:gap-4 md:gap-6">
+        {/* Emoji Container */}
+        <div className="flex justify-between w-full max-w-sm sm:max-w-md lg:max-w-lg">
+          {icons.map((icon) => {
+            const isActive = value === icon.value && !notApplicable;
+            const IconComponent = icon.Component;
+
+            return (
+              <div key={icon.value} className="flex flex-col items-center">
+                <button
+                  onClick={() => handleEmojiPress(icon.value)}
+                  className={`p-2 sm:p-3 lg:p-4 rounded-full transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-opacity-50 ${
+                    isActive 
+                      ? "bg-indigo-100 transform scale-105 shadow-sm" 
+                      : "hover:bg-gray-100"
+                  }`}
+                  type="button"
+                  aria-label={`Rate ${icon.value}`}
+                >
+                  <IconComponent
+                    style={{ 
+                      color: isActive ? icon.color : "#9ca3af",
+                    }}
+                    className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 xl:w-12 xl:h-12 transition-colors duration-200"
+                  />
+                </button>
+                <span className="text-[11px] sm:text-xs lg:text-sm text-gray-500 mt-1 font-medium">
+                  {icon.value}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Checkbox */}
+        <button
+          onClick={handleNotApplicable}
+          className="flex items-center focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-opacity-50 px-2 py-1.5 rounded-lg hover:bg-gray-50"
+          type="button"
+        >
+          <div
+            className={`w-5 h-5 mr-2 rounded border-2 flex items-center justify-center transition-colors duration-200 ${
+              notApplicable
+                ? "bg-indigo-600 border-indigo-600"
+                : "border-gray-400 bg-white hover:border-indigo-400"
+            }`}
+          >
+            {notApplicable && (
+              <LuCheck className="w-3.5 h-3.5 text-white" />
+            )}
+          </div>
+          <span className="text-gray-700 text-xs sm:text-sm lg:text-base font-medium select-none whitespace-nowrap">
+            Not Applicable
+          </span>
+        </button>
       </div>
 
-      <label className="flex items-center gap-2 text-sm mt-2 sm:mt-0 sm:ml-6 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={notApplicable}
-          onChange={(e) => onNotApplicableChange(e.target.checked)}
-          className="form-checkbox h-4 w-4 sm:h-6 sm:w-6 text-indigo-600"
-        />
-        Not Applicable
-      </label>
+      {/* Status Text */}
+      <div className="mt-3 sm:mt-4 text-center text-gray-600 text-xs sm:text-sm lg:text-base min-h-[20px] px-3 sm:px-4">
+        <div className={`py-2 px-4 rounded-lg ${
+          notApplicable ? "bg-purple-50 text-purple-700" :
+          value ? "bg-indigo-50 text-indigo-700" : 
+          "bg-gray-50 text-gray-500"
+        }`}>
+          {notApplicable
+            ? "✓ Not Applicable selected"
+            : value
+            ? `✓ You selected: ${satisfactionLabels[value - 1]}`
+            : "Please select a rating"}
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default EmojiRating;
