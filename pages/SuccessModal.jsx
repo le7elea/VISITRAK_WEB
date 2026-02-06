@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import modalIcon from "../src/assets/modalIcon.png";
 
 export default function SuccessModal({
   visible,
@@ -31,7 +32,7 @@ export default function SuccessModal({
         
         {/* Icon */}
         <img
-          src="../src/assets/modalIcon.png"
+          src={modalIcon}
           alt="Success"
           className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28 object-contain mb-2"
         />
