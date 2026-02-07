@@ -93,6 +93,7 @@ export default function PersonalInfoSection({
           border border-[#8b6fd6]
           rounded-2xl
           p-5 sm:p-6
+          relative z-30
         "
       >
         {/* WARNINGS */}
@@ -150,18 +151,22 @@ export default function PersonalInfoSection({
               onChange={handleNameChange}
               onKeyDown={handleKeyDown}
               placeholder="Full Name"
-              className="
+              className={`
                 w-full h-11 sm:h-12
                 pl-11 pr-4
                 rounded-xl
-                bg-[#e7def4]
                 text-[#2f2450]
                 placeholder-[#7b6a9b]
-                border border-transparent
+                border
                 focus:outline-none
-                focus:ring-2 focus:ring-indigo-400
+                focus:ring-2
                 transition
-              "
+                ${
+                  errors?.fullName
+                    ? "border-2 border-red-500 bg-red-500/10 ring-2 ring-red-400/60 focus:ring-red-400"
+                    : "border-transparent bg-[#e7def4] focus:ring-indigo-400"
+                }
+              `}
               autoCapitalize="words"
               autoComplete="name"
             />
@@ -170,9 +175,9 @@ export default function PersonalInfoSection({
 
         {/* ADDRESS SELECTOR */}
         <BoholAddressSelector
+          ref={homeAddressRef}
           homeAddress={homeAddress}
           setHomeAddress={setHomeAddress}
-          homeAddressRef={homeAddressRef}
           errors={errors}
           setErrors={setErrors}
           onHomeAddressSubmit={onHomeAddressSubmit}

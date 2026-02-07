@@ -18,8 +18,10 @@ export default function InputField({
   return (
     <div className="flex flex-col w-full">
       <div
-        className={`flex items-center gap-3 rounded-md border px-3 py-2 bg-[#e9e2f5] ${
-          error ? "border-red-400" : "border-[#cbb7ec]"
+        className={`flex items-center gap-3 rounded-xl border h-11 sm:h-12 px-3 ${
+          error
+            ? "border-2 border-red-500 bg-red-500/10 ring-2 ring-red-400/60"
+            : "border border-[#cbb7ec] bg-[#e9e2f5]"
         } ${disabled ? "opacity-60" : ""}`}
       >
         <span className="text-[#6b4fb3]">{icon}</span>
@@ -28,7 +30,7 @@ export default function InputField({
           placeholder={placeholder}
           value={value}
           onChange={handleChange}
-          className={`w-full outline-none bg-transparent text-[#2f2450] placeholder-[#7b6a9b] ${
+          className={`w-full h-full outline-none bg-transparent text-[#2f2450] placeholder-[#7b6a9b] ${
             uppercase ? "uppercase" : ""
           }`}
           disabled={disabled}

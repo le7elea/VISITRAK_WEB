@@ -42,8 +42,8 @@ export default function SubmitButton({
           onClick={handleClick}
           disabled={disabled || isLoading}
           className={`
-            w-full h-11 sm:h-12
-            bg-gradient-to-r from-[#7a2ff2] to-[#5a2bd8]
+            w-full h-14 sm:h-16
+            bg-[#7816EF]
             disabled:opacity-60 disabled:cursor-not-allowed
             rounded-lg
             shadow-md
@@ -58,9 +58,9 @@ export default function SubmitButton({
         >
           <span 
             className={`
-              font-semibold tracking-wide text-center text-sm sm:text-base
+              font-semibold tracking-wide text-center text-base sm:text-lg text-white
             `}
-            style={{ fontSize: getFontSize(isMobile ? 14 : 16) }}
+            style={{ fontSize: getFontSize(isMobile ? 16 : 18) }}
           >
             {isLoading ? 'Processing...' : title}
           </span>

@@ -143,15 +143,18 @@ export default function ContactInfoSection({
                 w-full h-11 sm:h-12
                 pl-11 pr-4
                 rounded-xl
-                bg-[#e7def4]
                 text-[#2f2450]
                 placeholder-[#7b6a9b]
-                border border-transparent
+                border
                 focus:outline-none
-                focus:ring-2 focus:ring-indigo-400
+                focus:ring-2
                 transition
-                ${errors?.contactNumber ? 'border-red-500' : ''}
                 text-base
+                ${
+                  errors?.contactNumber || contactWarning
+                    ? "border-2 border-red-500 bg-red-500/10 ring-2 ring-red-400/60 focus:ring-red-400"
+                    : "border-transparent bg-[#e7def4] focus:ring-indigo-400"
+                }
               `}
               pattern="[0-9]*"
               inputMode="numeric"

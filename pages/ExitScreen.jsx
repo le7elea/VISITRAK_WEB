@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { FiLogOut } from "react-icons/fi";
+import { FiAlertTriangle, FiLogOut } from "react-icons/fi";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -14,6 +14,7 @@ export default function ExitScreen() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [visitId, setVisitId] = useState(null);
   const [visitorName, setVisitorName] = useState("");
+  const [error, setError] = useState(null);
 
   const inputRef = useRef(null);
 
@@ -23,11 +24,18 @@ export default function ExitScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      alert("Please enter your name.");
+      setError({
+        title: "Name required",
+        message: "Please enter your name.",
+      });
+      inputRef.current?.focus();
       return;
     }
 
+    let wasSuccessful = false;
+
     try {
+      setError(null);
       setLoading(true);
 
       const upperCaseName = name.trim().toUpperCase();
@@ -38,14 +46,17 @@ export default function ExitScreen() {
       setVisitId(id);
       setVisitorName(upperCaseName);
       setShowSuccess(true);
+      wasSuccessful = true;
     } catch (error) {
       console.error("Checkout error:", error);
-      alert(
-        "No active visit found for this name.\nPlease check the spelling or ensure you checked in first."
-      );
+      setError({
+        title: "No active visit found",
+        message:
+          "No active visit found for this name. Please check the spelling or ensure you checked in first.",
+      });
     } finally {
       setLoading(false);
-      setName("");
+      if (wasSuccessful) setName("");
     }
   };
 
@@ -84,7 +95,10 @@ export default function ExitScreen() {
               ref={inputRef}
               type="text"
               value={name.toUpperCase()}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (error) setError(null);
+              }}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               placeholder="Enter Your Full Name"
@@ -93,6 +107,24 @@ export default function ExitScreen() {
               className="w-full px-4 py-2.5 sm:py-3 lg:py-3.5 text-gray-800 bg-transparent outline-none text-sm sm:text-base lg:text-lg"
             />
           </div>
+
+          {error && (
+            <div className="mt-4 sm:mt-5 bg-red-500/10 border border-red-400/70 rounded-xl p-3 sm:p-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-red-400/20">
+                  <FiAlertTriangle className="text-red-300 w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-red-100 font-semibold text-sm sm:text-base">
+                    {error.title}
+                  </p>
+                  <p className="text-red-200 text-xs sm:text-sm">
+                    {error.message}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Submit Button */}
           <button

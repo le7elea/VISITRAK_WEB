@@ -41,17 +41,17 @@ export default function SuccessCard({ name, address, checkIn, visiting }) {
       {/* Check-in Info */}
       <div className="text-white text-sm sm:text-base font-medium space-y-2">
         {/* CHECK IN row */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-          <span className="text-white/80">CHECK IN :</span>
-          <span className="font-normal break-words sm:text-right">
+        <div className="flex flex-row justify-between items-center gap-2">
+          <span className="text-white/80 shrink-0">CHECK IN :</span>
+          <span className="font-normal break-words text-right ml-auto">
             {checkIn}
           </span>
         </div>
 
         {/* VISITING row */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-          <span className="text-white/80">VISITING :</span>
-          <span className="font-normal break-words sm:text-right">
+        <div className="flex flex-row justify-between items-center gap-2">
+          <span className="text-white/80 shrink-0">VISITING :</span>
+          <span className="font-normal break-words text-right ml-auto">
             {visiting}
           </span>
         </div>
