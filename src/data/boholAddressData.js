@@ -9,9 +9,10 @@ export const boholAddressData = {
   ],
    
   "Alburquerque": [
-    "Angilan", "Basacdacu", "Buenavista", "Cantomugcad", "Dangay", 
-    "East Poblacion", "Ponong", "Salon", "Santa Filomena", 
-    "Tagbuane", "Toril", "West Poblacion"
+    "Bahi", "Basacdacu", "Cantiguib",  "Dangay","East Poblacion",
+    "Ponong", "San Agustin", "Santa Filomena", "Tagbuane", "Toril", 
+    "West Poblacion"
+
   ],
   
   "Alicia": [
