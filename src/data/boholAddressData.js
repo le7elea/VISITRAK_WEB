@@ -7,7 +7,7 @@ export const boholAddressData = {
     "Mansasa", "Poblacion I", "Poblacion II", "Poblacion III", 
     "San Isidro", "Taloto", "Tiptip", "Ubujan"
   ],
-  
+   
   "Alburquerque": [
     "Angilan", "Basacdacu", "Buenavista", "Cantomugcad", "Dangay", 
     "East Poblacion", "Ponong", "Salon", "Santa Filomena", 

@@ -9,10 +9,26 @@ import { FaHome, FaMapMarkerAlt } from "react-icons/fa";
 import { ChevronDown } from "lucide-react";
 
 import {
-  getMunicipalities,
-  getBarangays,
+  getMunicipalities as getLocalMunicipalities,
+  getBarangays as getLocalBarangays,
   formatAddressForDB,
 } from "../src/data/boholAddressData";
+import {
+  fetchBoholCitiesMunicipalities,
+  fetchBarangaysByCityMunicipalityCode,
+  normalizeLocalityName,
+} from "../src/lib/psgc.service";
+
+const localMunicipalityNames = getLocalMunicipalities();
+
+const resolveLocalMunicipalityName = (municipalityName) =>
+  localMunicipalityNames.find(
+    (localName) =>
+      normalizeLocalityName(localName) === normalizeLocalityName(municipalityName)
+  ) || municipalityName;
+
+const getFallbackBarangays = (municipalityName) =>
+  getLocalBarangays(resolveLocalMunicipalityName(municipalityName));
 
 const AutoCompleteSelect = forwardRef(
   (
@@ -282,20 +298,27 @@ const BoholAddressSelector = forwardRef(
       homeAddress,
       setHomeAddress,
       errors,
+      setErrors,
       onAddressChange,
       onAddressPartsChange,
       onSubmitEditing,
+      onHomeAddressSubmit,
     },
     ref
   ) => {
     const [municipality, setMunicipality] = useState("");
     const [barangay, setBarangay] = useState("");
+    const [municipalityOptions, setMunicipalityOptions] = useState([]);
+    const [municipalityCodeByName, setMunicipalityCodeByName] = useState({});
+    const [barangayOptions, setBarangayOptions] = useState([]);
+    const [loadingMunicipalities, setLoadingMunicipalities] = useState(true);
+    const [loadingBarangays, setLoadingBarangays] = useState(false);
+    const [isFallbackMode, setIsFallbackMode] = useState(false);
 
     const municipalityRef = useRef(null);
     const barangayRef = useRef(null);
-
-    const municipalities = getMunicipalities();
-    const barangayList = municipality ? getBarangays(municipality) : [];
+    const barangayCacheRef = useRef({});
+    const submitHandlerRef = useRef(null);
 
     /* ---------------- EXPOSE FOCUS ---------------- */
     useImperativeHandle(ref, () => ({
@@ -305,6 +328,122 @@ const BoholAddressSelector = forwardRef(
     }));
 
     /* ---------------- EFFECTS ---------------- */
+    useEffect(() => {
+      let isMounted = true;
+
+      const loadMunicipalities = async () => {
+        setLoadingMunicipalities(true);
+
+        try {
+          const rows = await fetchBoholCitiesMunicipalities();
+          if (!isMounted) return;
+
+          const names = rows.map((row) => row.name);
+          const codeMap = rows.reduce((acc, row) => {
+            acc[row.name] = row.code;
+            return acc;
+          }, {});
+
+          setMunicipalityOptions(names);
+          setMunicipalityCodeByName(codeMap);
+          setIsFallbackMode(false);
+        } catch (error) {
+          console.warn(
+            "PSGC municipalities unavailable. Falling back to local Bohol list.",
+            error
+          );
+          if (!isMounted) return;
+
+          setMunicipalityOptions(getLocalMunicipalities());
+          setMunicipalityCodeByName({});
+          setIsFallbackMode(true);
+        } finally {
+          if (isMounted) {
+            setLoadingMunicipalities(false);
+          }
+        }
+      };
+
+      loadMunicipalities();
+
+      return () => {
+        isMounted = false;
+      };
+    }, []);
+
+    useEffect(() => {
+      submitHandlerRef.current = onHomeAddressSubmit || onSubmitEditing;
+    }, [onHomeAddressSubmit, onSubmitEditing]);
+
+    useEffect(() => {
+      let isMounted = true;
+
+      const loadBarangays = async () => {
+        if (!municipality) {
+          setBarangayOptions([]);
+          return;
+        }
+
+        const syncBarangay = (nextBarangays) => {
+          setBarangayOptions(nextBarangays);
+          setBarangay((current) =>
+            current && !nextBarangays.includes(current) ? "" : current
+          );
+        };
+
+        if (isFallbackMode) {
+          syncBarangay(getFallbackBarangays(municipality));
+          return;
+        }
+
+        const municipalityCode = municipalityCodeByName[municipality];
+
+        if (!municipalityCode) {
+          syncBarangay(getFallbackBarangays(municipality));
+          return;
+        }
+
+        const cached = barangayCacheRef.current[municipalityCode];
+        if (cached) {
+          syncBarangay(cached);
+          return;
+        }
+
+        setLoadingBarangays(true);
+        try {
+          const apiBarangays = await fetchBarangaysByCityMunicipalityCode(
+            municipalityCode
+          );
+
+          if (!isMounted) return;
+
+          const resolvedBarangays = apiBarangays.length
+            ? apiBarangays
+            : getFallbackBarangays(municipality);
+
+          barangayCacheRef.current[municipalityCode] = resolvedBarangays;
+          syncBarangay(resolvedBarangays);
+        } catch (error) {
+          console.warn(
+            "PSGC barangays unavailable. Falling back to local Bohol list.",
+            error
+          );
+          if (!isMounted) return;
+          syncBarangay(getFallbackBarangays(municipality));
+        } finally {
+          if (isMounted) {
+            setLoadingBarangays(false);
+          }
+        }
+      };
+
+      loadBarangays();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [isFallbackMode, municipality, municipalityCodeByName]);
+
     useEffect(() => {
       onAddressPartsChange?.({ municipality, barangay });
 
@@ -317,27 +456,46 @@ const BoholAddressSelector = forwardRef(
           onAddressChange(dbFormat);
         }
 
-        onSubmitEditing?.();
+        submitHandlerRef.current?.();
       } else {
         setHomeAddress("");
         onAddressChange?.(null);
       }
-    }, [municipality, barangay]);
+    }, [
+      municipality,
+      barangay,
+      onAddressPartsChange,
+      setHomeAddress,
+      onAddressChange,
+    ]);
 
     useEffect(() => {
       if (homeAddress && !municipality && !barangay) {
         const parts = homeAddress.split(", ");
         if (parts.length >= 2) {
-          setBarangay(parts[0]);
-          setMunicipality(parts[1]);
+          const parsedBarangay = parts[0];
+          const parsedMunicipality = parts[1];
+
+          const resolvedMunicipality =
+            municipalityOptions.find(
+              (option) =>
+                normalizeLocalityName(option) ===
+                normalizeLocalityName(parsedMunicipality)
+            ) || parsedMunicipality;
+
+          setBarangay(parsedBarangay);
+          setMunicipality(resolvedMunicipality);
         }
       }
-    }, []);
+    }, [barangay, homeAddress, municipality, municipalityOptions]);
 
     /* ---------------- HANDLERS ---------------- */
     const handleMunicipalityChange = (value) => {
       setMunicipality(value);
       setBarangay("");
+      if (setErrors && errors?.homeAddress) {
+        setErrors((prev) => ({ ...prev, homeAddress: false }));
+      }
 
       setTimeout(() => {
         barangayRef.current?.focus();
@@ -346,6 +504,9 @@ const BoholAddressSelector = forwardRef(
 
     const handleBarangayChange = (value) => {
       setBarangay(value);
+      if (setErrors && errors?.homeAddress) {
+        setErrors((prev) => ({ ...prev, homeAddress: false }));
+      }
     };
 
     /* ---------------- UI ---------------- */
@@ -356,11 +517,20 @@ const BoholAddressSelector = forwardRef(
           ref={municipalityRef}
           value={municipality}
           onChange={handleMunicipalityChange}
-          options={municipalities}
+          options={municipalityOptions}
           placeholder="Select Municipality"
+          disabled={loadingMunicipalities}
           hasError={errors?.homeAddress}
           icon={<FaHome className="text-indigo-500" size={16} />}
         />
+        {loadingMunicipalities && (
+          <p className="text-xs text-indigo-200">Loading municipalities...</p>
+        )}
+        {!loadingMunicipalities && isFallbackMode && (
+          <p className="text-xs text-amber-200">
+            PSGC is unavailable. Using local Bohol address list.
+          </p>
+        )}
 
         {/* BARANGAY */}
         {municipality && (
@@ -368,11 +538,15 @@ const BoholAddressSelector = forwardRef(
             ref={barangayRef}
             value={barangay}
             onChange={handleBarangayChange}
-            options={barangayList}
+            options={barangayOptions}
             placeholder="Select Barangay"
+            disabled={loadingBarangays}
             hasError={errors?.homeAddress}
             icon={<FaMapMarkerAlt className="text-indigo-500" size={16} />}
           />
+        )}
+        {municipality && loadingBarangays && (
+          <p className="text-xs text-indigo-200">Loading barangays...</p>
         )}
 
         {/* SELECTED ADDRESS */}
