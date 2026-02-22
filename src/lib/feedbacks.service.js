@@ -11,6 +11,26 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
+const removeUndefinedDeep = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => removeUndefinedDeep(item))
+      .filter((item) => item !== undefined);
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value).reduce((acc, [key, childValue]) => {
+      const cleanedValue = removeUndefinedDeep(childValue);
+      if (cleanedValue !== undefined) {
+        acc[key] = cleanedValue;
+      }
+      return acc;
+    }, {});
+  }
+
+  return value;
+};
+
 /**
  * Add feedback linked to a visit
  * @param {Object} feedback
@@ -18,6 +38,7 @@ import { db } from "./firebase";
  *  - name: string
  *  - answers: object/map { "1": 5, "2": 4, ... }
  *  - suggestion: string
+ *  - surveyDetails: object (client type, sex, CC answers, etc.)
  */
 export const addFeedback = async (feedback) => {
   try {
@@ -48,12 +69,20 @@ export const addFeedback = async (feedback) => {
 
     console.log("📊 Calculated average rating:", averageRating);
 
+    const surveyDetails = removeUndefinedDeep(feedback.surveyDetails || {});
+    const mergedSuggestion =
+      feedback.suggestion ?? surveyDetails.suggestion ?? "";
+    const mergedCommendation =
+      feedback.commendation ?? surveyDetails.commendation ?? "";
+
     const feedbackData = {
       visitId: feedback.visitId,
       name: feedback.name,
       answers: feedback.answers,
       averageRating,
-      suggestion: feedback.suggestion || "",
+      suggestion: mergedSuggestion,
+      commendation: mergedCommendation,
+      surveyDetails,
       createdAt: serverTimestamp(),
     };
 
