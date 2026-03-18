@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { FaUser, FaUserCircle, FaHome } from "react-icons/fa";
 import { MdWarning, MdCheckCircle } from "react-icons/md";
 
@@ -14,6 +14,8 @@ export default function PersonalInfoSection({
   homeAddress,
   setHomeAddress,
   homeAddressRef,
+  outsideBohol,
+  setOutsideBohol,
   errors,
   setErrors,
   nameExistsToday,
@@ -26,6 +28,32 @@ export default function PersonalInfoSection({
   const [nameWarning, setNameWarning] = useState("");
   const [checkingDuplicate, setCheckingDuplicate] = useState(false);
   const debounceRef = useRef(null);
+
+  const handleOutsideToggle = (e) => {
+    const nextValue = e.target.checked;
+    setOutsideBohol(nextValue);
+    if (!nextValue) {
+      setHomeAddress("");
+    }
+
+    if (errors?.homeAddress) {
+      setErrors((prev) => ({ ...prev, homeAddress: false }));
+    }
+  };
+
+  const handleOutsideAddressChange = (e) => {
+    setHomeAddress(e.target.value);
+    if (errors?.homeAddress) {
+      setErrors((prev) => ({ ...prev, homeAddress: false }));
+    }
+  };
+
+  const handleOutsideAddressKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onHomeAddressSubmit?.();
+    }
+  };
 
   /* ---------------- NAME HANDLER ---------------- */
   const handleNameChange = (e) => {
@@ -173,17 +201,77 @@ export default function PersonalInfoSection({
           </div>
         </div>
 
+        {/* OUTSIDE BOHOL TOGGLE */}
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <label
+            htmlFor="outsideBoholToggle"
+            className="text-sm font-semibold text-indigo-100"
+          >
+            Outside Bohol?
+          </label>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              id="outsideBoholToggle"
+              type="checkbox"
+              checked={outsideBohol}
+              onChange={handleOutsideToggle}
+              className="sr-only peer"
+            />
+            <div className="h-6 w-11 rounded-full bg-indigo-200/70 transition-colors peer-checked:bg-emerald-400/80" />
+            <div className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-transform peer-checked:translate-x-5" />
+          </label>
+        </div>
+
         {/* ADDRESS SELECTOR */}
-        <BoholAddressSelector
-          ref={homeAddressRef}
-          homeAddress={homeAddress}
-          setHomeAddress={setHomeAddress}
-          errors={errors}
-          setErrors={setErrors}
-          onHomeAddressSubmit={onHomeAddressSubmit}
-          isMobile={isMobile}
-          isTablet={isTablet}
-        />
+        {outsideBohol ? (
+          <div className="mb-2">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <FaHome
+                  size={16}
+                  className={errors?.homeAddress ? "text-red-400" : "text-indigo-500"}
+                />
+              </div>
+              <input
+                ref={homeAddressRef}
+                id="homeAddress"
+                type="text"
+                value={homeAddress}
+                onChange={handleOutsideAddressChange}
+                onKeyDown={handleOutsideAddressKeyDown}
+                placeholder="Complete Address (Outside Bohol)"
+                className={`
+                  w-full h-11 sm:h-12
+                  pl-11 pr-4
+                  rounded-xl
+                  text-[#2f2450]
+                  placeholder-[#7b6a9b]
+                  border
+                  focus:outline-none
+                  focus:ring-2
+                  transition
+                  ${
+                    errors?.homeAddress
+                      ? "border-2 border-red-500 bg-red-500/10 ring-2 ring-red-400/60 focus:ring-red-400"
+                      : "border-transparent bg-[#e7def4] focus:ring-indigo-400"
+                  }
+                `}
+                autoComplete="street-address"
+              />
+            </div>
+          </div>
+        ) : (
+          <BoholAddressSelector
+            ref={homeAddressRef}
+            homeAddress={homeAddress}
+            setHomeAddress={setHomeAddress}
+            errors={errors}
+            setErrors={setErrors}
+            onHomeAddressSubmit={onHomeAddressSubmit}
+            isMobile={isMobile}
+            isTablet={isTablet}
+          />
+        )}
 
         {/* SELECTED ADDRESS PREVIEW */}
         {homeAddress?.barangay && (

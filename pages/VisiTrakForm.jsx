@@ -36,6 +36,7 @@ export default function VisiTrakForm() {
   /* 🔹 FORM STATE */
   const [fullName, setFullName] = useState("");
   const [homeAddress, setHomeAddress] = useState("");
+  const [outsideBohol, setOutsideBohol] = useState(false);
   const [office, setOffice] = useState("");
   const [customOffice, setCustomOffice] = useState("");
   const [purpose, setPurpose] = useState("");
@@ -250,6 +251,8 @@ export default function VisiTrakForm() {
               homeAddress={homeAddress}
               setHomeAddress={setHomeAddress}
               homeAddressRef={homeAddressRef}
+              outsideBohol={outsideBohol}
+              setOutsideBohol={setOutsideBohol}
               errors={errors}
               setErrors={setErrors}
               nameExistsToday={nameExistsToday}
