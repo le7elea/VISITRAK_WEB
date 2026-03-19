@@ -5,7 +5,7 @@ import Header from "../components/Satisfaction_header";
 import Question from "../components/Question";
 import EmojiRating from "../components/EmojiRating";
 import { addFeedback } from "../src/lib/feedbacks.service";
-import { fetchOffices } from "../src/lib/info.services";
+import { getVisitById } from "../src/lib/visits.service";
 
 const ratingQuestions = [
   "Responsiveness (Pag abi-abi).",
@@ -101,6 +101,7 @@ const Satisfaction = () => {
   const [showModal, setShowModal] = useState(false);
   const [highlightQuestion, setHighlightQuestion] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingVisitOffice, setLoadingVisitOffice] = useState(!state?.office && !!visitId);
   const [error, setError] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
 
@@ -115,46 +116,45 @@ const Satisfaction = () => {
     cc2: "",
     cc3: "",
   });
-  const [officeOptions, setOfficeOptions] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadOfficeOptions = async () => {
+    const loadVisitOffice = async () => {
+      if (state?.office) {
+        setOfficeVisited(state.office);
+        setLoadingVisitOffice(false);
+        return;
+      }
+
+      if (!visitId) {
+        setLoadingVisitOffice(false);
+        return;
+      }
+
+      setLoadingVisitOffice(true);
+
       try {
-        const offices = await fetchOffices();
+        const visit = await getVisitById(visitId);
         if (!isMounted) return;
 
-        const names = [
-          ...new Set(
-            offices
-              .filter((office) => office.role !== "super" && office.name?.trim())
-              .map((office) => office.name.trim())
-          ),
-        ];
-
-        setOfficeOptions(names);
-
-        if (!state?.office && names.length) {
-          setOfficeVisited((current) => current || names[0]);
-        }
+        setOfficeVisited(visit.office?.trim() || "");
       } catch (loadError) {
-        console.error("Failed to load office options:", loadError);
+        if (!isMounted) return;
+        console.error("Failed to load visit office:", loadError);
+      } finally {
+        if (isMounted) {
+          setLoadingVisitOffice(false);
+        }
       }
     };
 
-    loadOfficeOptions();
+    loadVisitOffice();
 
     return () => {
       isMounted = false;
     };
-  }, [state?.office]);
-
-  useEffect(() => {
-    if (state?.office) {
-      setOfficeVisited(state.office);
-    }
-  }, [state?.office]);
+  }, [state?.office, visitId]);
 
   const handleAnswer = (number, value) => {
     setAnswers((prev) => ({ ...prev, [number]: value }));
@@ -430,27 +430,17 @@ const Satisfaction = () => {
                 >
                   Unit / Office Visited (Gibisita nga opisina)
                 </label>
-                <select
+                <input
                   id="unit-office-visited"
                   value={officeVisited}
-                  onChange={(event) => {
-                    clearValidationError("officeVisited");
-                    setOfficeVisited(event.target.value);
-                  }}
-                  className={`w-full appearance-none rounded-md border bg-transparent px-3 pr-10 py-2.5 text-sm sm:text-base text-[#1f1f1f] outline-none ${
+                  readOnly
+                  placeholder="Checked-in office will appear here"
+                  className={`w-full rounded-md border bg-transparent px-3 py-2.5 text-sm sm:text-base text-[#1f1f1f] outline-none ${
                     validationErrors.officeVisited
                       ? "border-red-500 focus:border-red-500"
                       : "border-[#575757] focus:border-[#4b4b4b]"
                   }`}
-                >
-                  <option value="">Select office</option>
-                  {officeOptions.map((office) => (
-                    <option key={office} value={office}>
-                      {office}
-                    </option>
-                  ))}
-                </select>
-                <IoChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-black w-5 h-5" />
+                />
               </div>
             </div>
 
@@ -608,12 +598,18 @@ const Satisfaction = () => {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={submitting}
+              disabled={submitting || loadingVisitOffice}
               className={`w-full mt-5 rounded-lg bg-[#552b98] text-white py-3 sm:py-3.5 font-bold tracking-wide transition ${
-                submitting ? "opacity-70 cursor-not-allowed" : "hover:bg-[#45207e]"
+                submitting || loadingVisitOffice
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-[#45207e]"
               }`}
             >
-              {submitting ? "Submitting..." : "SUBMIT FEEDBACK"}
+              {submitting
+                ? "Submitting..."
+                : loadingVisitOffice
+                  ? "Loading visit..."
+                  : "SUBMIT FEEDBACK"}
             </button>
 
             <p className="text-center text-[#4b4b4b] text-sm sm:text-base pt-3 pb-1">
