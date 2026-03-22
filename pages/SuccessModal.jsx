@@ -7,6 +7,7 @@ export default function SuccessModal({
   onClose,
   visitId,
   visitorName,
+  displayName,
 }) {
   const navigate = useNavigate();
 
@@ -47,7 +48,7 @@ export default function SuccessModal({
           onClick={() => {
             onClose();
             navigate("/satisfaction", {
-              state: { visitId, visitorName },
+              state: { visitId, visitorName, displayName },
             });
           }}
           className="w-full h-11 sm:h-12 lg:h-14 mb-5 sm:mb-6 rounded-2xl bg-purple-600 text-white font-bold tracking-wide sm:tracking-widest text-sm sm:text-base lg:text-lg

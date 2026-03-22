@@ -9,11 +9,13 @@ import { setCheckOutTimeByName } from "../src/lib/visits.service";
 
 export default function ExitScreen() {
   const [name, setName] = useState("");
+  const [showNameWithFeedback, setShowNameWithFeedback] = useState(true);
   const [focused, setFocused] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [visitId, setVisitId] = useState(null);
   const [visitorName, setVisitorName] = useState("");
+  const [feedbackDisplayName, setFeedbackDisplayName] = useState("");
   const [error, setError] = useState(null);
 
   const inputRef = useRef(null);
@@ -43,8 +45,12 @@ export default function ExitScreen() {
 
       if (!id) throw new Error("No active visit found");
 
+      const selectedDisplayName =
+        showNameWithFeedback ? upperCaseName : "Anonymous";
+
       setVisitId(id);
       setVisitorName(upperCaseName);
+      setFeedbackDisplayName(selectedDisplayName);
       setShowSuccess(true);
       wasSuccessful = true;
     } catch (error) {
@@ -108,6 +114,31 @@ export default function ExitScreen() {
             />
           </div>
 
+          <fieldset className="mt-4 rounded-xl border border-orange-300 bg-white/10 p-4">
+            <legend className="px-2 text-sm font-semibold text-orange-100">
+              Feedback Name Display
+            </legend>
+            <div className="mt-2">
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white">
+                <input
+                  type="checkbox"
+                  checked={showNameWithFeedback}
+                  onChange={(event) => setShowNameWithFeedback(event.target.checked)}
+                  disabled={loading}
+                  className="mt-1 h-4 w-4 shrink-0 accent-purple-600"
+                />
+                <span>
+                  <span className="block font-semibold">
+                    Show my name to the admin with my feedback
+                  </span>
+                  <span className="block text-xs text-orange-100/90">
+                    Your feedback will include your name.
+                  </span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
           {error && (
             <div className="mt-4 sm:mt-5 bg-red-500/10 border border-red-400/70 rounded-xl p-3 sm:p-4">
               <div className="flex items-start gap-3">
@@ -149,6 +180,7 @@ export default function ExitScreen() {
         onClose={() => setShowSuccess(false)}
         visitId={visitId}
         visitorName={visitorName}
+        displayName={feedbackDisplayName}
       />
     </div>
   );

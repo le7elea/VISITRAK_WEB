@@ -36,6 +36,7 @@ const removeUndefinedDeep = (value) => {
  * @param {Object} feedback
  *  - visitId: string (ID of the visit)
  *  - name: string
+ *  - displayName?: string
  *  - answers: object/map { "1": 5, "2": 4, ... }
  *  - suggestion: string
  *  - surveyDetails: object (client type, sex, CC answers, etc.)
@@ -78,6 +79,7 @@ export const addFeedback = async (feedback) => {
     const feedbackData = {
       visitId: feedback.visitId,
       name: feedback.name,
+      displayName: feedback.displayName || feedback.name,
       answers: feedback.answers,
       averageRating,
       suggestion: mergedSuggestion,

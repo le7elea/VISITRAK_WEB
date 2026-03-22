@@ -18,7 +18,6 @@ export default function PersonalInfoSection({
   setOutsideBohol,
   errors,
   setErrors,
-  nameExistsToday,
   checkingName,
   onFullNameSubmit,
   onHomeAddressSubmit,
@@ -42,7 +41,7 @@ export default function PersonalInfoSection({
   };
 
   const handleOutsideAddressChange = (e) => {
-    setHomeAddress(e.target.value);
+    setHomeAddress(e.target.value.toUpperCase());
     if (errors?.homeAddress) {
       setErrors((prev) => ({ ...prev, homeAddress: false }));
     }

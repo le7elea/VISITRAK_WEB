@@ -255,7 +255,6 @@ export default function VisiTrakForm() {
               setOutsideBohol={setOutsideBohol}
               errors={errors}
               setErrors={setErrors}
-              nameExistsToday={nameExistsToday}
               checkingName={checkingName}
               onFullNameSubmit={() => handleInputSubmit(homeAddressRef)}
               onHomeAddressSubmit={() => handleInputSubmit(customOfficeRef)}

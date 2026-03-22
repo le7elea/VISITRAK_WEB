@@ -91,6 +91,8 @@ const Satisfaction = () => {
   const { state } = useLocation();
   const visitId = state?.visitId ?? paramVisitId;
   const visitorName = state?.visitorName ?? paramVisitorName;
+  const initialShowNameWithFeedback =
+    !state?.displayName || state.displayName === visitorName;
   const navigate = useNavigate();
   const formCardRef = useRef(null);
   const questionRefs = useRef({});
@@ -109,8 +111,11 @@ const Satisfaction = () => {
   const [sex, setSex] = useState("");
   const [region, setRegion] = useState("VII");
   const [officeVisited, setOfficeVisited] = useState(state?.office ?? "");
-  const [servicesAvailed, setServicesAvailed] = useState("");
-  const [servicedBy, setServicedBy] = useState("");
+  const [servicesAvailed, setServicesAvailed] = useState(state?.purpose ?? "");
+  const [servicedBy, setServicedBy] = useState(state?.staffName ?? "");
+  const [showNameWithFeedback, setShowNameWithFeedback] = useState(
+    initialShowNameWithFeedback
+  );
   const [ccResponses, setCcResponses] = useState({
     cc1: "",
     cc2: "",
@@ -139,6 +144,8 @@ const Satisfaction = () => {
         if (!isMounted) return;
 
         setOfficeVisited(visit.office?.trim() || "");
+        setServicesAvailed((current) => current || visit.purpose?.trim() || "");
+        setServicedBy((current) => current || visit.staffName?.trim() || "");
       } catch (loadError) {
         if (!isMounted) return;
         console.error("Failed to load visit office:", loadError);
@@ -271,6 +278,7 @@ const Satisfaction = () => {
       const feedbackObject = {
         visitId,
         name: visitorName,
+        displayName: showNameWithFeedback ? visitorName : "Anonymous",
         answers: sanitizedAnswers,
         suggestion: suggestion.trim(),
         surveyDetails: {
@@ -337,6 +345,33 @@ const Satisfaction = () => {
             ref={formCardRef}
             className="bg-[#efefef] rounded-2xl p-4 sm:p-6 md:p-7 border border-white/80 shadow-xl"
           >
+            <fieldset className="mb-4 rounded-xl border border-[#d7caea] bg-white/70 px-4 py-3">
+              <legend className="px-1 text-sm font-semibold text-[#1f1f1f]">
+                Feedback Name Display
+              </legend>
+              <label className="mt-2 flex cursor-pointer items-start gap-3 rounded-lg border border-[#d2d2d2] bg-white px-3 py-2 text-sm text-[#2f2f2f]">
+                <input
+                  type="checkbox"
+                  checked={showNameWithFeedback}
+                  onChange={(event) => setShowNameWithFeedback(event.target.checked)}
+                  className="mt-1 h-4 w-4 shrink-0 accent-[#552b98]"
+                />
+                <span>
+                  <span className="block font-semibold text-[#1f1f1f]">
+                    Show my name to the admin with my feedback
+                  </span>
+                  <span className="block text-xs text-[#5f5f5f]">
+                    Your feedback will include your name.
+                  </span>
+                  {!showNameWithFeedback && (
+                    <span className="block text-xs font-medium text-[#7a2f2f]">
+                      Your feedback will be saved as Anonymous.
+                    </span>
+                  )}
+                </span>
+              </label>
+            </fieldset>
+
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <fieldset>
                 <div
