@@ -16,6 +16,20 @@ import backG03 from "../src/assets/backG010.png";
 
 import { addVisit, checkActiveVisitByName } from "../src/lib/visits.service";
 
+const toAddressText = (value) => {
+  if (typeof value === "string") return value.trim();
+  if (value && typeof value === "object") {
+    const barangay = typeof value.barangay === "string" ? value.barangay.trim() : "";
+    const municipality =
+      typeof value.municipality === "string" ? value.municipality.trim() : "";
+    const province = typeof value.province === "string" ? value.province.trim() : "";
+
+    return [barangay, municipality, province].filter(Boolean).join(", ").trim();
+  }
+
+  return "";
+};
+
 export default function VisiTrakForm() {
   const navigate = useNavigate();
   const containerRef = useRef(null);
@@ -153,10 +167,11 @@ export default function VisiTrakForm() {
     }
 
     const digitsOnly = (contactNumber || "").replace(/[^0-9]/g, "");
+    const normalizedAddress = toAddressText(homeAddress);
 
     const newErrors = {
       fullName: fullName.trim() === "",
-      homeAddress: homeAddress.trim() === "",
+      homeAddress: normalizedAddress === "",
       office: office.trim() === "",
       customOffice: office === "Other" && customOffice.trim() === "",
       purpose: purpose.trim() === "",
@@ -184,12 +199,12 @@ export default function VisiTrakForm() {
 
     const visitData = {
       name: fullName,
-      address: homeAddress,
+      address: normalizedAddress,
       office: finalOffice,
       purpose: finalPurpose,
-      staffName,
-      contactNumber,
-      email,
+      staffName: staffName.trim(),
+      contactNumber: digitsOnly,
+      email: email.trim().toLowerCase(),
       rating: emojiRating,
       comment: "",
       checkOutTime: null,
@@ -204,7 +219,7 @@ export default function VisiTrakForm() {
       });
     } catch (error) {
       console.error("Firestore submission error:", error);
-      alert("Error", "Failed to submit visit. Please try again.");
+      alert(error?.message || "Failed to submit visit. Please try again.");
     } finally {
       setSubmitting(false);
     }

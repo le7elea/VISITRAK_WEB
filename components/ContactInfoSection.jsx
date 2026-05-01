@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 import { MdContactPhone } from "react-icons/md";
 
@@ -34,15 +34,12 @@ export default function ContactInfoSection({
       return;
     }
 
-    // Auto-format to Philippine number (09XXXXXXXXX)
-    if (!filteredText.startsWith("09")) {
-      filteredText = filteredText.startsWith("0") ? "09" + filteredText.substring(1) : "09" + filteredText;
-    }
-
     if (filteredText.length > 11) filteredText = filteredText.slice(0, 11);
 
     if (hasNonDigit) {
       setContactWarning("Only numbers are allowed");
+    } else if (filteredText.length > 0 && !filteredText.startsWith("09")) {
+      setContactWarning("Contact number must start with 09");
     } else if (filteredText.length > 0 && filteredText.length !== 11) {
       setContactWarning("Contact number must be 11 digits");
     } else {
@@ -135,10 +132,10 @@ export default function ContactInfoSection({
               ref={contactNumberRef}
               id="contactNumber"
               type="tel"
-              value={contactNumber || "09"}
+              value={contactNumber}
               onChange={handleContactChange}
               onKeyDown={handleContactKeyDown}
-              placeholder="Contact Number"
+              placeholder="09XXXXXXXXX"
               className={`
                 w-full h-11 sm:h-12
                 pl-11 pr-4

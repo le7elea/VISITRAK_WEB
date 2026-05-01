@@ -13,6 +13,32 @@ import {
   limit,
 } from "firebase/firestore";
 import { db } from "./firebase";
+const formatVisitError = (error, fallbackMessage) => {
+  const code = typeof error?.code === "string" ? error.code : "";
+  const rawMessage = typeof error?.message === "string" ? error.message : "";
+
+  if (code === "permission-denied") {
+    return new Error(
+      "Firestore denied this request. Check your Firestore rules for the visits collection."
+    );
+  }
+
+  if (code === "unavailable") {
+    return new Error("Firestore is temporarily unavailable. Please try again.");
+  }
+
+  if (code === "failed-precondition") {
+    return new Error(
+      rawMessage || "Firestore is missing a required index or precondition."
+    );
+  }
+
+  if (rawMessage) {
+    return new Error(rawMessage);
+  }
+
+  return new Error(fallbackMessage);
+};
 
 /**
  * Check if visitor is still checked-in (duplicate prevention)
@@ -44,8 +70,11 @@ export const checkActiveVisitByName = async (name) => {
       checkOutTime: data.checkOutTime?.toDate(),
     };
   } catch (error) {
-    console.error("❌ Error checking active visit:", error);
-    return null;
+    console.error("Error checking active visit:", error);
+    throw formatVisitError(
+      error,
+      "Unable to validate whether this visitor is already checked in."
+    );
   }
 };
 
@@ -62,7 +91,7 @@ export const addVisit = async (visit) => {
 
     const existingVisit = await checkActiveVisitByName(trimmedName);
     if (existingVisit) {
-      throw new Error(`⚠️ ${trimmedName} is already checked in.`);
+      throw new Error(trimmedName + " is already checked in.");
     }
 
     const visitData = {
@@ -81,12 +110,12 @@ export const addVisit = async (visit) => {
     };
 
     const docRef = await addDoc(collection(db, "visits"), visitData);
-    console.log("✅ Visit added:", docRef.id);
+    console.log("Visit added:", docRef.id);
 
     return { id: docRef.id, ...visitData };
   } catch (error) {
-    console.error("❌ Error adding visit:", error.message || error);
-    throw error;
+    console.error("Error adding visit:", error.message || error);
+    throw formatVisitError(error, "Failed to submit visit.");
   }
 };
 
@@ -201,7 +230,11 @@ export const getActiveVisits = async () => {
  * Update visit (safe fields only)
  */
 export const updateVisit = async (visitId, updates) => {
-  const { id, createdAt, checkInTime, checkOutTime, ...allowed } = updates;
+  const allowed = { ...updates };
+  delete allowed.id;
+  delete allowed.createdAt;
+  delete allowed.checkInTime;
+  delete allowed.checkOutTime;
   await updateDoc(doc(db, "visits", visitId), allowed);
   return visitId;
 };
