@@ -20,6 +20,15 @@ import SelectField from "./SelectField";
 import InputField from "./InputField";
 import { fetchOffices } from "../src/lib/info.services";
 
+const normalizeOptionList = (values = []) =>
+  Array.from(
+    new Set(
+      values
+        .map((value) => (typeof value === "string" ? value.trim() : ""))
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b));
+
 const VisitInfoSection = forwardRef(({
   purpose,
   setPurpose,
@@ -131,9 +140,7 @@ const VisitInfoSection = forwardRef(({
 
   const initializeData = (visitorOffices) => {
     // Extract office names
-    const officeNames = visitorOffices
-      .map(o => o.name)
-      .filter(name => name && name.trim() !== "");
+    const officeNames = normalizeOptionList(visitorOffices.map((o) => o.name));
     
     const officesWithOther = [...officeNames, "Other"];
     setAllOffices(officeNames);
@@ -144,11 +151,11 @@ const VisitInfoSection = forwardRef(({
     visitorOffices.forEach(office => {
       if (office.purposes && Array.isArray(office.purposes)) {
         office.purposes.forEach(p => {
-          if (p?.name?.trim()) purposeSet.add(p.name);
+          if (p?.name?.trim()) purposeSet.add(p.name.trim());
         });
       }
     });
-    const purposesArray = Array.from(purposeSet);
+    const purposesArray = normalizeOptionList(Array.from(purposeSet));
     setAllPurposes(purposesArray);
     setFilteredPurposes([...purposesArray, "Other"]);
 
@@ -159,29 +166,26 @@ const VisitInfoSection = forwardRef(({
         office.staffToVisit.forEach(staff => {
           if (staff?.name?.trim()) {
             staffList.push({
-              name: staff.name,
-              office: office.name,
-              purpose: staff.purpose || null,
+              name: staff.name.trim(),
+              office: office.name.trim(),
+              purpose: typeof staff.purpose === "string" ? staff.purpose.trim() : null,
             });
           }
         });
       }
     });
     setAllStaff(staffList);
-    setFilteredStaffOptions(staffList.map(s => s.name));
+    setFilteredStaffOptions(normalizeOptionList(staffList.map((s) => s.name)));
   };
 
   const handleDataLoadError = () => {
-    // Fallback data
-    const fallbackOffices = ["REGISTRAR", "CLINIC", "CASHIER", "CCIS/CTAS OFFICE", "Other"];
-    const fallbackPurposes = ["COR/TOR", "MEDICAL", "PAYMENT", "INQUIRY", "SUBMISSION OF REQUIREMENTS", "Other"];
-    
-    setAllOffices(fallbackOffices.filter(o => o !== "Other"));
-    setFilteredOffices(fallbackOffices);
-    setAllPurposes(fallbackPurposes.filter(p => p !== "Other"));
-    setFilteredPurposes(fallbackPurposes);
-    
-    alert("Could not load office data. Using default options.");
+    setOffices([]);
+    setAllOffices([]);
+    setFilteredOffices([]);
+    setAllPurposes([]);
+    setFilteredPurposes([]);
+    setAllStaff([]);
+    setFilteredStaffOptions([]);
   };
 
   // Field dependency logic
@@ -200,7 +204,7 @@ const VisitInfoSection = forwardRef(({
       const staffInOffice = allStaff
         .filter(s => s.office === staffOffice)
         .map(s => s.name);
-      setFilteredStaffOptions(staffInOffice);
+      setFilteredStaffOptions(normalizeOptionList(staffInOffice));
 
       setTimeout(() => purposeFieldRef.current?.focus?.(), 200);
     }
@@ -214,9 +218,13 @@ const VisitInfoSection = forwardRef(({
       setFilteredOffices([...officesForPurpose, "Other"]);
       
       const staffForPurpose = allStaff
-        .filter(s => officesForPurpose.includes(s.office))
+        .filter((s) => {
+          if (!officesForPurpose.includes(s.office)) return false;
+          if (!s.purpose) return true;
+          return s.purpose === purpose;
+        })
         .map(s => s.name);
-      setFilteredStaffOptions(staffForPurpose);
+      setFilteredStaffOptions(normalizeOptionList(staffForPurpose));
 
       if (officesForPurpose.length === 1 && !office) {
         setOffice(officesForPurpose[0]);
@@ -235,9 +243,14 @@ const VisitInfoSection = forwardRef(({
       setFilteredPurposes([...purposes, "Other"]);
 
       const staffInOffice = allStaff
-        .filter(s => s.office === office)
+        .filter((s) => {
+          if (s.office !== office) return false;
+          if (!purpose || purpose === "Other") return true;
+          if (!s.purpose) return true;
+          return s.purpose === purpose;
+        })
         .map(s => s.name);
-      setFilteredStaffOptions(staffInOffice);
+      setFilteredStaffOptions(normalizeOptionList(staffInOffice));
 
       // Reset purpose if it's not in the filtered list
       if (purpose && !purposes.includes(purpose) && purpose !== "Other") {
@@ -246,7 +259,7 @@ const VisitInfoSection = forwardRef(({
 
       setTimeout(() => purposeFieldRef.current?.focus?.(), 200);
     }
-  }, [office, firstFilledField, officeToPurposeMap, allStaff, purpose, setPurpose]);
+  }, [office, firstFilledField, officeToPurposeMap, allStaff, allPurposes, purpose, setPurpose]);
 
   // Reset filters when all fields are empty
   useEffect(() => {
@@ -254,7 +267,7 @@ const VisitInfoSection = forwardRef(({
       setFirstFilledField(null);
       setFilteredOffices([...allOffices, "Other"]);
       setFilteredPurposes([...allPurposes, "Other"]);
-      setFilteredStaffOptions(allStaff.map(s => s.name));
+      setFilteredStaffOptions(normalizeOptionList(allStaff.map((s) => s.name)));
     }
   }, [staffName, purpose, office, allOffices, allPurposes, allStaff]);
 
