@@ -24,7 +24,7 @@ function HomeRoute() {
     }
   }, [location.search, navigate]);
 
-  return <VisiTrakForm />;
+  return <VisiTrakForm />; 
 }
 
 export default function App() {

@@ -4,6 +4,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 const ACCESS_PARAM = import.meta.env.VITE_QR_ACCESS_PARAM || "k";
 const ACCESS_KEY = (import.meta.env.VITE_QR_ACCESS_KEY || "").trim();
 const SESSION_FLAG_KEY = "visitrak.qrAccessGranted";
+const MANUAL_SESSION_FLAG_KEY = "visitrak.manualTokenValidated";
+const MANUAL_MODE_VALUE = "manual";
+const MANUAL_MODE_PARAM = "mode";
+const TOKEN_PARAM = "token";
+const MANUAL_ALLOWED_ROUTES = new Set(["/satisfaction", "/thankyou"]);
 
 const buildCleanUrl = (location, params) => {
   const nextSearch = params.toString();
@@ -40,6 +45,11 @@ export default function AccessGate({ children }) {
 
     const params = new URLSearchParams(location.search);
     const incomingKey = params.get(ACCESS_PARAM);
+    const manualTokenRequest =
+      location.pathname === "/satisfaction" &&
+      params.get(MANUAL_MODE_PARAM) === MANUAL_MODE_VALUE &&
+      params.get(TOKEN_PARAM) &&
+      incomingKey;
 
     if (incomingKey && incomingKey === ACCESS_KEY) {
       sessionStorage.setItem(SESSION_FLAG_KEY, "1");
@@ -56,9 +66,18 @@ export default function AccessGate({ children }) {
       return;
     }
 
-    const hasSessionAccess =
-      sessionStorage.getItem(SESSION_FLAG_KEY) === "1";
-    setAllowed(hasSessionAccess);
+    if (manualTokenRequest) {
+      setAllowed(true);
+      setChecked(true);
+      return;
+    }
+
+    const hasSessionAccess = sessionStorage.getItem(SESSION_FLAG_KEY) === "1";
+    const hasManualSessionAccess =
+      sessionStorage.getItem(MANUAL_SESSION_FLAG_KEY) === "1" &&
+      MANUAL_ALLOWED_ROUTES.has(location.pathname);
+
+    setAllowed(hasSessionAccess || hasManualSessionAccess);
     setChecked(true);
   }, [location, navigate]);
 

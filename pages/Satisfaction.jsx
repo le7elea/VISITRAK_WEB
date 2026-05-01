@@ -4,8 +4,16 @@ import { IoChevronDown } from "react-icons/io5";
 import Header from "../components/Satisfaction_header";
 import Question from "../components/Question";
 import EmojiRating from "../components/EmojiRating";
-import { addFeedback } from "../src/lib/feedbacks.service";
+import {
+  addFeedback,
+  submitManualFeedback,
+  validateManualFeedbackToken,
+} from "../src/lib/feedbacks.service";
 import { getVisitById } from "../src/lib/visits.service";
+
+const ACCESS_PARAM = import.meta.env.VITE_QR_ACCESS_PARAM || "k";
+const MANUAL_MODE_VALUE = "manual";
+const MANUAL_SESSION_FLAG_KEY = "visitrak.manualTokenValidated";
 
 const ratingQuestions = [
   "Responsiveness (Pag abi-abi).",
@@ -86,16 +94,59 @@ const metadataLabelClass = "text-xs sm:text-sm font-semibold text-[#1f1f1f]";
 const metadataFieldClass =
   "w-full mt-1 rounded-md border border-[#b9b9b9] bg-white px-3 py-2 text-sm text-[#232323] outline-none focus:border-[#7f5bb3] focus:ring-2 focus:ring-[#7f5bb3]/30";
 
+const toTrimmedText = (value) =>
+  typeof value === "string" ? value.trim() : "";
+
+const isSpecificManualOffice = (officeValue) => {
+  const normalizedOffice = toTrimmedText(officeValue).toLowerCase();
+  return Boolean(normalizedOffice && normalizedOffice !== "all offices");
+};
+
+const StatusScreen = ({ title, message, buttonLabel, onButtonClick }) => (
+  <div className="min-h-screen bg-gradient-to-b from-[#381366] via-[#4A2279] to-[#573483] flex items-center justify-center px-4">
+    <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
+        {title}
+      </h2>
+      <p className="text-gray-600 text-sm sm:text-base mb-5 leading-relaxed">
+        {message}
+      </p>
+      {buttonLabel && onButtonClick && (
+        <button
+          type="button"
+          onClick={onButtonClick}
+          className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-purple-900 transition"
+        >
+          {buttonLabel}
+        </button>
+      )}
+    </div>
+  </div>
+);
+
 const Satisfaction = () => {
   const { visitId: paramVisitId, visitorName: paramVisitorName } = useParams();
-  const { state } = useLocation();
-  const visitId = state?.visitId ?? paramVisitId;
-  const visitorName = state?.visitorName ?? paramVisitorName;
-  const initialShowNameWithFeedback =
-    !state?.displayName || state.displayName === visitorName;
+  const location = useLocation();
+  const { state } = location;
   const navigate = useNavigate();
   const formCardRef = useRef(null);
   const questionRefs = useRef({});
+  const searchParams = new URLSearchParams(location.search);
+
+  const visitId = state?.visitId ?? paramVisitId;
+  const visitorName = state?.visitorName ?? paramVisitorName;
+  const hasVisitContext = Boolean(visitId && visitorName);
+  const requestedMode = toTrimmedText(searchParams.get("mode")).toLowerCase();
+  const manualToken = toTrimmedText(searchParams.get("token"));
+  const manualAccessKey = toTrimmedText(searchParams.get(ACCESS_PARAM));
+  const requestedOffice = toTrimmedText(searchParams.get("office"));
+  const isManualTokenRequest =
+    !hasVisitContext &&
+    requestedMode === MANUAL_MODE_VALUE &&
+    manualToken &&
+    manualAccessKey;
+  const initialShowNameWithFeedback =
+    !state?.displayName || state.displayName === visitorName;
 
   const [answers, setAnswers] = useState({});
   const [commendation, setCommendation] = useState("");
@@ -103,9 +154,14 @@ const Satisfaction = () => {
   const [showModal, setShowModal] = useState(false);
   const [highlightQuestion, setHighlightQuestion] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [loadingVisitOffice, setLoadingVisitOffice] = useState(!state?.office && !!visitId);
+  const [loadingVisitOffice, setLoadingVisitOffice] = useState(
+    !state?.office && !!visitId
+  );
   const [error, setError] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
+  const [manualTokenRecord, setManualTokenRecord] = useState(null);
+  const [manualTokenError, setManualTokenError] = useState("");
+  const [validatingManualToken, setValidatingManualToken] = useState(false);
 
   const [clientType, setClientType] = useState("");
   const [sex, setSex] = useState("");
@@ -122,10 +178,25 @@ const Satisfaction = () => {
     cc3: "",
   });
 
+  const isManualEntryMode = Boolean(manualTokenRecord);
+  const manualOfficeLocked = isSpecificManualOffice(manualTokenRecord?.office);
+  const displayNameLabel = isManualEntryMode
+    ? "ANONYMOUS MANUAL ENTRY"
+    : visitorName;
+  const approvedOfficeLabel =
+    manualTokenRecord?.officialOfficeName ||
+    manualTokenRecord?.office ||
+    requestedOffice;
+
   useEffect(() => {
     let isMounted = true;
 
     const loadVisitOffice = async () => {
+      if (isManualTokenRequest) {
+        setLoadingVisitOffice(false);
+        return;
+      }
+
       if (state?.office) {
         setOfficeVisited(state.office);
         setLoadingVisitOffice(false);
@@ -161,11 +232,68 @@ const Satisfaction = () => {
     return () => {
       isMounted = false;
     };
-  }, [state?.office, visitId]);
+  }, [isManualTokenRequest, state?.office, visitId]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const validateToken = async () => {
+      if (!isManualTokenRequest) {
+        setManualTokenRecord(null);
+        setManualTokenError("");
+        setValidatingManualToken(false);
+        return;
+      }
+
+      setValidatingManualToken(true);
+      setManualTokenError("");
+
+      try {
+        const tokenRecord = await validateManualFeedbackToken({
+          token: manualToken,
+          accessKey: manualAccessKey,
+        });
+
+        if (!isMounted) return;
+
+        setManualTokenRecord(tokenRecord);
+        setOfficeVisited((current) => current || tokenRecord.office || requestedOffice);
+        setShowNameWithFeedback(false);
+        sessionStorage.setItem(MANUAL_SESSION_FLAG_KEY, "1");
+      } catch (validationError) {
+        if (!isMounted) return;
+
+        setManualTokenRecord(null);
+        setManualTokenError(
+          validationError?.message ||
+            "This manual feedback QR approval could not be validated."
+        );
+        sessionStorage.removeItem(MANUAL_SESSION_FLAG_KEY);
+      } finally {
+        if (isMounted) {
+          setValidatingManualToken(false);
+        }
+      }
+    };
+
+    validateToken();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isManualTokenRequest, manualAccessKey, manualToken, requestedOffice]);
 
   const handleAnswer = (number, value) => {
     setAnswers((prev) => ({ ...prev, [number]: value }));
     setHighlightQuestion(null);
+  };
+
+  const clearValidationError = (fieldName) => {
+    setError("");
+    setValidationErrors((prev) => {
+      if (!prev[fieldName]) return prev;
+      return { ...prev, [fieldName]: false };
+    });
   };
 
   const handleCcOptionChange = (questionId, optionValue) => {
@@ -179,7 +307,6 @@ const Satisfaction = () => {
     setCcResponses((prev) => {
       const isTogglingOff = prev[questionId] === optionValue;
 
-      // Rule: if CC1 = 4, auto-answer N/A on CC2 and CC3
       if (questionId === "cc1") {
         if (optionValue === "4") {
           if (isTogglingOff) {
@@ -201,14 +328,6 @@ const Satisfaction = () => {
         ...prev,
         [questionId]: isTogglingOff ? "" : optionValue,
       };
-    });
-  };
-
-  const clearValidationError = (fieldName) => {
-    setError("");
-    setValidationErrors((prev) => {
-      if (!prev[fieldName]) return prev;
-      return { ...prev, [fieldName]: false };
     });
   };
 
@@ -263,35 +382,60 @@ const Satisfaction = () => {
       return;
     }
 
-    if (!visitId || !visitorName) {
-      setError("Missing visit information. Please try again.");
-      setSubmitting(false);
-      return;
-    }
-
     try {
       const sanitizedAnswers = {};
       Object.keys(answers).forEach((key) => {
         sanitizedAnswers[key.toString()] = Number(answers[key]);
       });
 
+      const surveyDetails = {
+        clientType: clientType || null,
+        sex: sex || null,
+        region: region || null,
+        unitOfficeVisited: officeVisited.trim() || null,
+        servicesAvailed: servicesAvailed.trim(),
+        servicedBy: servicedBy.trim(),
+        commendation: commendation.trim(),
+        suggestion: suggestion.trim(),
+        citizensCharter: ccResponses,
+      };
+
+      if (isManualEntryMode) {
+        await submitManualFeedback({
+          tokenId: manualTokenRecord.id,
+          token: manualToken,
+          accessKey: manualAccessKey,
+          feedback: {
+            displayName: "Anonymous",
+            office: officeVisited.trim(),
+            officialOfficeName:
+              manualTokenRecord?.officialOfficeName || officeVisited.trim(),
+            answers: sanitizedAnswers,
+            suggestion: suggestion.trim(),
+            commendation: commendation.trim(),
+            surveyDetails,
+          },
+        });
+        sessionStorage.setItem(MANUAL_SESSION_FLAG_KEY, "1");
+        navigate("/thankyou", { replace: true });
+        return;
+      }
+
+      if (!hasVisitContext) {
+        setError("Missing visit information. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+
       const feedbackObject = {
         visitId,
         name: visitorName,
         displayName: showNameWithFeedback ? visitorName : "Anonymous",
+        office: officeVisited.trim(),
         answers: sanitizedAnswers,
         suggestion: suggestion.trim(),
-        surveyDetails: {
-          clientType: clientType || null,
-          sex: sex || null,
-          region: region || null,
-          unitOfficeVisited: officeVisited || null,
-          servicesAvailed: servicesAvailed.trim(),
-          servicedBy: servicedBy.trim(),
-          commendation: commendation.trim(),
-          suggestion: suggestion.trim(),
-          citizensCharter: ccResponses,
-        },
+        commendation: commendation.trim(),
+        surveyDetails,
       };
 
       await addFeedback(feedbackObject);
@@ -304,25 +448,37 @@ const Satisfaction = () => {
     }
   };
 
-  if (!visitId || !visitorName) {
+  if (!hasVisitContext && isManualTokenRequest && validatingManualToken) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#381366] via-[#4A2279] to-[#573483] flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
-            Missing Visit Information
-          </h2>
-          <p className="text-gray-600 text-sm mb-5">
-            Check out first before opening the feedback form.
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-purple-900 transition"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
+      <StatusScreen
+        title="Validating Manual QR"
+        message="Please wait while we confirm this anonymous manual feedback approval token."
+      />
+    );
+  }
+
+  if (!hasVisitContext && isManualTokenRequest && !isManualEntryMode) {
+    return (
+      <StatusScreen
+        title="Manual QR Unavailable"
+        message={
+          manualTokenError ||
+          "This anonymous manual feedback QR approval is not available right now."
+        }
+        buttonLabel="Go Back"
+        onButtonClick={() => navigate("/")}
+      />
+    );
+  }
+
+  if (!hasVisitContext && !isManualEntryMode) {
+    return (
+      <StatusScreen
+        title="Missing Visit Information"
+        message="Check out first before opening the feedback form, or use an approved manual feedback QR code."
+        buttonLabel="Go Back"
+        onButtonClick={() => navigate("/")}
+      />
     );
   }
 
@@ -337,40 +493,62 @@ const Satisfaction = () => {
               CUSTOMER SATISFACTION FEEDBACK FORM
             </h1>
             <p className="text-[#d1b6f8] text-xs sm:text-sm mt-1 tracking-wide">
-              VISITOR : <span className="font-semibold">{visitorName}</span>
+              VISITOR : <span className="font-semibold">{displayNameLabel}</span>
             </p>
+            {isManualEntryMode && (
+              <p className="text-[#ead9ff] text-[11px] sm:text-xs mt-2 tracking-wide">
+                APPROVED MANUAL ENTRY
+                {approvedOfficeLabel ? ` • ${approvedOfficeLabel}` : ""}
+                {manualTokenRecord?.expiresAt
+                  ? ` • Expires ${manualTokenRecord.expiresAt.toLocaleString()}`
+                  : ""}
+              </p>
+            )}
           </div>
 
           <div
             ref={formCardRef}
             className="bg-[#efefef] rounded-2xl p-4 sm:p-6 md:p-7 border border-white/80 shadow-xl"
           >
-            <fieldset className="mb-4 rounded-xl border border-[#d7caea] bg-white/70 px-4 py-3">
-              <legend className="px-1 text-sm font-semibold text-[#1f1f1f]">
-                Feedback Name Display
-              </legend>
-              <label className="mt-2 flex cursor-pointer items-start gap-3 rounded-lg border border-[#d2d2d2] bg-white px-3 py-2 text-sm text-[#2f2f2f]">
-                <input
-                  type="checkbox"
-                  checked={showNameWithFeedback}
-                  onChange={(event) => setShowNameWithFeedback(event.target.checked)}
-                  className="mt-1 h-4 w-4 shrink-0 accent-[#552b98]"
-                />
-                <span>
-                  <span className="block font-semibold text-[#1f1f1f]">
-                    Show my name to the admin with my feedback
-                  </span>
-                  <span className="block text-xs text-[#5f5f5f]">
-                    Your feedback will include your name.
-                  </span>
-                  {!showNameWithFeedback && (
-                    <span className="block text-xs font-medium text-[#7a2f2f]">
-                      Your feedback will be saved as Anonymous.
+            {isManualEntryMode ? (
+              <div className="mb-4 rounded-xl border border-[#d7caea] bg-white/70 px-4 py-3">
+                <p className="text-sm font-semibold text-[#1f1f1f]">
+                  Anonymous manual feedback mode is active.
+                </p>
+                <p className="mt-1 text-xs sm:text-sm text-[#4a3f62] leading-relaxed">
+                  This approval QR lets you encode a paper feedback form without a
+                  visitor name or visit ID. The submission will be saved as
+                  Anonymous.
+                </p>
+              </div>
+            ) : (
+              <fieldset className="mb-4 rounded-xl border border-[#d7caea] bg-white/70 px-4 py-3">
+                <legend className="px-1 text-sm font-semibold text-[#1f1f1f]">
+                  Feedback Name Display
+                </legend>
+                <label className="mt-2 flex cursor-pointer items-start gap-3 rounded-lg border border-[#d2d2d2] bg-white px-3 py-2 text-sm text-[#2f2f2f]">
+                  <input
+                    type="checkbox"
+                    checked={showNameWithFeedback}
+                    onChange={(event) => setShowNameWithFeedback(event.target.checked)}
+                    className="mt-1 h-4 w-4 shrink-0 accent-[#552b98]"
+                  />
+                  <span>
+                    <span className="block font-semibold text-[#1f1f1f]">
+                      Show my name to the admin with my feedback
                     </span>
-                  )}
-                </span>
-              </label>
-            </fieldset>
+                    <span className="block text-xs text-[#5f5f5f]">
+                      Your feedback will include your name.
+                    </span>
+                    {!showNameWithFeedback && (
+                      <span className="block text-xs font-medium text-[#7a2f2f]">
+                        Your feedback will be saved as Anonymous.
+                      </span>
+                    )}
+                  </span>
+                </label>
+              </fieldset>
+            )}
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <fieldset>
@@ -468,8 +646,19 @@ const Satisfaction = () => {
                 <input
                   id="unit-office-visited"
                   value={officeVisited}
-                  readOnly
-                  placeholder="Checked-in office will appear here"
+                  readOnly={!isManualEntryMode || manualOfficeLocked}
+                  onChange={(event) => {
+                    if (!isManualEntryMode || manualOfficeLocked) return;
+                    clearValidationError("officeVisited");
+                    setOfficeVisited(event.target.value);
+                  }}
+                  placeholder={
+                    isManualEntryMode
+                      ? manualOfficeLocked
+                        ? "Approved office is locked for this QR"
+                        : "Enter the office for this anonymous paper feedback"
+                      : "Checked-in office will appear here"
+                  }
                   className={`w-full rounded-md border bg-transparent px-3 py-2.5 text-sm sm:text-base text-[#1f1f1f] outline-none ${
                     validationErrors.officeVisited
                       ? "border-red-500 focus:border-red-500"
@@ -633,18 +822,20 @@ const Satisfaction = () => {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={submitting || loadingVisitOffice}
+              disabled={submitting || loadingVisitOffice || validatingManualToken}
               className={`w-full mt-5 rounded-lg bg-[#552b98] text-white py-3 sm:py-3.5 font-bold tracking-wide transition ${
-                submitting || loadingVisitOffice
+                submitting || loadingVisitOffice || validatingManualToken
                   ? "opacity-70 cursor-not-allowed"
                   : "hover:bg-[#45207e]"
               }`}
             >
               {submitting
                 ? "Submitting..."
-                : loadingVisitOffice
-                  ? "Loading visit..."
-                  : "SUBMIT FEEDBACK"}
+                : validatingManualToken
+                  ? "Validating QR..."
+                  : loadingVisitOffice
+                    ? "Loading visit..."
+                    : "SUBMIT FEEDBACK"}
             </button>
 
             <p className="text-center text-[#4b4b4b] text-sm sm:text-base pt-3 pb-1">
