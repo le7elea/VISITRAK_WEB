@@ -163,7 +163,7 @@ export default async function handler(req, res) {
     return res.status(status).json({
       success: false,
       message: isConfigError(message)
-        ? "Server Firebase Admin configuration is invalid. Please check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY on Vercel."
+        ? "Server Firebase Admin configuration is invalid. Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, or set FIREBASE_SERVICE_ACCOUNT_JSON on Vercel."
         : message || "Failed to submit the manual feedback entry.",
     });
   }

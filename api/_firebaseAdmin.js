@@ -1,6 +1,16 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
+const firstNonEmpty = (...values) => {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return "";
+};
+
 const sanitizeMultilineSecret = (value = "") => {
   if (!value) return "";
 
@@ -32,9 +42,13 @@ const sanitizeMultilineSecret = (value = "") => {
 const parseServiceAccountFromEnv = () => {
   const candidates = [
     process.env.FIREBASE_SERVICE_ACCOUNT,
+    process.env.FIREBASE_SERVICE_ACCOUNT_KEY,
     process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
+    process.env.FIREBASE_ADMIN_SDK_CONFIG,
+    process.env.FIREBASE_ADMIN_CREDENTIALS,
     process.env.GOOGLE_SERVICE_ACCOUNT_JSON,
     process.env.GCP_SERVICE_ACCOUNT_JSON,
+    process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON,
   ].filter(Boolean);
 
   for (const rawValue of candidates) {
@@ -60,24 +74,30 @@ const parseServiceAccountFromEnv = () => {
 const resolveAdminCredentials = () => {
   const serviceAccount = parseServiceAccountFromEnv();
 
-  const projectId =
-    serviceAccount?.project_id ||
-    serviceAccount?.projectId ||
-    process.env.FIREBASE_PROJECT_ID ||
-    process.env.VITE_FIREBASE_PROJECT_ID ||
-    process.env.GCLOUD_PROJECT ||
-    "";
+  const projectId = firstNonEmpty(
+    serviceAccount?.project_id,
+    serviceAccount?.projectId,
+    process.env.FIREBASE_PROJECT_ID,
+    process.env.FIREBASE_ADMIN_PROJECT_ID,
+    process.env.GOOGLE_CLOUD_PROJECT,
+    process.env.GCLOUD_PROJECT,
+    process.env.VITE_FIREBASE_PROJECT_ID
+  );
 
-  const clientEmail =
-    serviceAccount?.client_email ||
-    serviceAccount?.clientEmail ||
-    process.env.FIREBASE_CLIENT_EMAIL ||
-    "";
+  const clientEmail = firstNonEmpty(
+    serviceAccount?.client_email,
+    serviceAccount?.clientEmail,
+    process.env.FIREBASE_CLIENT_EMAIL,
+    process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+    process.env.GOOGLE_CLIENT_EMAIL
+  );
 
   const privateKey = sanitizeMultilineSecret(
     serviceAccount?.private_key ||
       serviceAccount?.privateKey ||
-      process.env.FIREBASE_PRIVATE_KEY
+      process.env.FIREBASE_PRIVATE_KEY ||
+      process.env.FIREBASE_ADMIN_PRIVATE_KEY ||
+      process.env.GOOGLE_PRIVATE_KEY
   );
 
   return {
@@ -93,7 +113,7 @@ export const getAdminDb = () => {
 
     if (!credentials.projectId || !credentials.clientEmail || !credentials.privateKey) {
       throw new Error(
-        "Firebase Admin credentials are missing or invalid. Configure FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY (or FIREBASE_SERVICE_ACCOUNT_JSON)."
+        "Firebase Admin credentials are missing or invalid. Configure FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, or provide a service account JSON value such as FIREBASE_SERVICE_ACCOUNT_JSON."
       );
     }
 
