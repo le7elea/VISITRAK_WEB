@@ -134,24 +134,25 @@ const getCurrentUser = () => {
  * This function is called by the form to get offices, purposes, and staff
  */
 export const fetchOffices = async () => {
-  try {
-    const snapshot = await getDocs(officesCollection);
-    const offices = snapshot.docs
-      .flatMap((docSnap) => extractOfficesFromDocData(docSnap.data(), docSnap.id))
-      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  const snapshot = await getDocs(officesCollection);
+  const offices = snapshot.docs
+    .flatMap((docSnap) => extractOfficesFromDocData(docSnap.data(), docSnap.id))
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
-    console.log(`Loaded ${offices.length} offices for VisitInfoSection`);
-    offices.forEach((office) => {
-      console.log(
-        `Office ${office.name}: ${office.purposes.length} purposes, ${office.staffToVisit.length} staff`
-      );
-    });
-
-    return offices;
-  } catch (error) {
-    console.error("Error fetching offices:", error);
-    return [];
+  if (!snapshot.empty && offices.length === 0) {
+    throw new Error(
+      "Firestore returned office documents, but none matched the expected schema."
+    );
   }
+
+  console.log(`Loaded ${offices.length} offices for VisitInfoSection`);
+  offices.forEach((office) => {
+    console.log(
+      `Office ${office.name}: ${office.purposes.length} purposes, ${office.staffToVisit.length} staff`
+    );
+  });
+
+  return offices;
 };
 
 /**

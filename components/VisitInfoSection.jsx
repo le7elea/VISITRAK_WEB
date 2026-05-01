@@ -57,6 +57,7 @@ const VisitInfoSection = forwardRef(({
   const [filteredStaffOptions, setFilteredStaffOptions] = useState([]);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadErrorMessage, setLoadErrorMessage] = useState("");
 
   // Refs
   const staffFieldRef = useRef(null);
@@ -113,6 +114,7 @@ const VisitInfoSection = forwardRef(({
     const loadOfficeData = async () => {
       try {
         setIsLoading(true);
+        setLoadErrorMessage("");
         const fetchedOffices = await fetchOffices();
         
         // Filter out super admin offices
@@ -129,7 +131,10 @@ const VisitInfoSection = forwardRef(({
         
       } catch (error) {
         console.error("❌ Error fetching offices:", error);
-        handleDataLoadError();
+        handleDataLoadError(
+          error?.message ||
+            "Could not load office data from Firestore. Check the offices collection and Firestore rules."
+        );
       } finally {
         setIsLoading(false);
       }
@@ -178,7 +183,7 @@ const VisitInfoSection = forwardRef(({
     setFilteredStaffOptions(normalizeOptionList(staffList.map((s) => s.name)));
   };
 
-  const handleDataLoadError = () => {
+  const handleDataLoadError = (message = "") => {
     setOffices([]);
     setAllOffices([]);
     setFilteredOffices([]);
@@ -186,6 +191,7 @@ const VisitInfoSection = forwardRef(({
     setFilteredPurposes([]);
     setAllStaff([]);
     setFilteredStaffOptions([]);
+    setLoadErrorMessage(message);
   };
 
   // Field dependency logic
@@ -364,6 +370,11 @@ const VisitInfoSection = forwardRef(({
           <p className="text-white">
             No visitor offices available. Please contact the administrator.
           </p>
+          {loadErrorMessage && (
+            <p className="mt-2 text-sm text-red-200">
+              {loadErrorMessage}
+            </p>
+          )}
         </div>
       </section>
     );
