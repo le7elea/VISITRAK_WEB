@@ -10,6 +10,7 @@ import {
   validateManualFeedbackToken,
 } from "../src/lib/feedbacks.service";
 import { getVisitById } from "../src/lib/visits.service";
+import { getOfficeNames } from "../src/lib/info.services";
 
 const ACCESS_PARAM = import.meta.env.VITE_QR_ACCESS_PARAM || "k";
 const MANUAL_MODE_VALUE = "manual";
@@ -162,6 +163,7 @@ const Satisfaction = () => {
   const [manualTokenRecord, setManualTokenRecord] = useState(null);
   const [manualTokenError, setManualTokenError] = useState("");
   const [validatingManualToken, setValidatingManualToken] = useState(false);
+  const [officeOptions, setOfficeOptions] = useState([]);
 
   const [clientType, setClientType] = useState("");
   const [sex, setSex] = useState("");
@@ -187,6 +189,38 @@ const Satisfaction = () => {
     manualTokenRecord?.officialOfficeName ||
     manualTokenRecord?.office ||
     requestedOffice;
+  const officeSelectLocked = !isManualEntryMode || manualOfficeLocked;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadOfficeOptions = async () => {
+      try {
+        const names = await getOfficeNames();
+        if (!isMounted) return;
+
+        const uniqueNames = Array.from(
+          new Set(
+            names
+              .map((name) => toTrimmedText(name))
+              .filter(Boolean)
+          )
+        );
+
+        setOfficeOptions(uniqueNames);
+      } catch (loadError) {
+        if (!isMounted) return;
+        console.error("Failed to load office options:", loadError);
+        setOfficeOptions([]);
+      }
+    };
+
+    loadOfficeOptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -643,28 +677,36 @@ const Satisfaction = () => {
                 >
                   Unit / Office Visited (Gibisita nga opisina)
                 </label>
-                <input
+                <select
                   id="unit-office-visited"
                   value={officeVisited}
-                  readOnly={!isManualEntryMode || manualOfficeLocked}
                   onChange={(event) => {
-                    if (!isManualEntryMode || manualOfficeLocked) return;
+                    if (officeSelectLocked) return;
                     clearValidationError("officeVisited");
                     setOfficeVisited(event.target.value);
                   }}
-                  placeholder={
-                    isManualEntryMode
-                      ? manualOfficeLocked
-                        ? "Approved office is locked for this QR"
-                        : "Enter the office for this anonymous paper feedback"
-                      : "Checked-in office will appear here"
-                  }
-                  className={`w-full rounded-md border bg-transparent px-3 py-2.5 text-sm sm:text-base text-[#1f1f1f] outline-none ${
+                  disabled={officeSelectLocked}
+                  className={`w-full appearance-none rounded-md border bg-transparent px-3 pr-10 py-2.5 text-sm sm:text-base text-[#1f1f1f] outline-none ${
                     validationErrors.officeVisited
                       ? "border-red-500 focus:border-red-500"
                       : "border-[#575757] focus:border-[#4b4b4b]"
-                  }`}
-                />
+                  } ${officeSelectLocked ? "cursor-not-allowed bg-[#f3f3f3] text-[#5f5f5f]" : ""}`}
+                >
+                  <option value="">
+                    {isManualEntryMode
+                      ? "Select an office"
+                      : "Checked-in office will appear here"}
+                  </option>
+                  {officeVisited && !officeOptions.includes(officeVisited) && (
+                    <option value={officeVisited}>{officeVisited}</option>
+                  )}
+                  {officeOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <IoChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-black w-5 h-5" />
               </div>
             </div>
 
