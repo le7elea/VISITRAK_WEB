@@ -11,12 +11,70 @@ import {
   serverTimestamp,
   query,
   where,
-  orderBy,
 } from "firebase/firestore";
 
 // 🔹 Reference to the collections
 const officesCollection = collection(db, "offices");
 const activityLogsCollection = collection(db, "activityLogs");
+
+const normalizePurpose = (purpose, officeId, index) => ({
+  id: purpose?.id || `purpose_${officeId}_${index}`,
+  name: purpose?.name || `Purpose ${index + 1}`,
+  description: purpose?.description || "",
+  ...purpose,
+});
+
+const normalizeStaff = (staff, officeId, index) => ({
+  id: staff?.id || `staff_${officeId}_${index}`,
+  name: staff?.name || `Staff ${index + 1}`,
+  purpose: staff?.purpose || null,
+  position: staff?.position || "",
+  email: staff?.email || "",
+  ...staff,
+});
+
+const normalizeOfficeRecord = (officeLike, fallbackId) => {
+  const officeData = officeLike && typeof officeLike === "object" ? officeLike : {};
+  const officeId = officeData.id || fallbackId;
+
+  return {
+    id: officeId,
+    name: officeData.name || "Unnamed Office",
+    email: officeData.email || "",
+    role: officeData.role || "office",
+    purposes: Array.isArray(officeData.purposes)
+      ? officeData.purposes.map((purpose, index) =>
+          normalizePurpose(purpose, officeId, index)
+        )
+      : [],
+    staffToVisit: Array.isArray(officeData.staffToVisit)
+      ? officeData.staffToVisit.map((staff, index) =>
+          normalizeStaff(staff, officeId, index)
+        )
+      : [],
+    createdAt: officeData.createdAt?.toDate?.() || new Date(),
+    updatedAt: officeData.updatedAt?.toDate?.() || null,
+    ...officeData,
+  };
+};
+
+const extractOfficesFromDocData = (data, docId) => {
+  const candidates = [data?.offices, data?.visitorOffices, data?.officeList, data?.items];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate.map((office, index) =>
+        normalizeOfficeRecord(office, office?.id || `${docId}_${index}`)
+      );
+    }
+  }
+
+  if (data?.name) {
+    return [normalizeOfficeRecord(data, docId)];
+  }
+
+  return [];
+};
 
 /**
  * Create an activity log
@@ -77,127 +135,22 @@ const getCurrentUser = () => {
  */
 export const fetchOffices = async () => {
   try {
-    // Get all offices, ordered by name
-    const q = query(officesCollection, orderBy("name", "asc"));
-    const snapshot = await getDocs(q);
-    
-    const offices = snapshot.docs.map((doc) => { 
-      const data = doc.data();
-      
-      // Format the office data for the VisitInfoSection
-      return {
-        id: doc.id, 
-        name: data.name || "Unnamed Office",
-        email: data.email || "",
-        role: data.role || "office",
-        
-        // Ensure purposes array exists and has proper structure
-        purposes: Array.isArray(data.purposes) 
-          ? data.purposes.map((purpose, index) => ({
-              id: purpose.id || `purpose_${doc.id}_${index}`,
-              name: purpose.name || `Purpose ${index + 1}`,
-              description: purpose.description || "",
-              ...purpose
-            }))
-          : [],
-        
-        // Ensure staffToVisit array exists and has proper structure
-        staffToVisit: Array.isArray(data.staffToVisit) 
-          ? data.staffToVisit.map((staff, index) => ({
-              id: staff.id || `staff_${doc.id}_${index}`,
-              name: staff.name || `Staff ${index + 1}`,
-              purpose: staff.purpose || null,
-              position: staff.position || "",
-              email: staff.email || "",
-              ...staff
-            }))
-          : [],
-        
-        // Timestamps
-        createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate() || null,
-        
-        // Include all other fields
-        ...data
-      };
+    const snapshot = await getDocs(officesCollection);
+    const offices = snapshot.docs
+      .flatMap((docSnap) => extractOfficesFromDocData(docSnap.data(), docSnap.id))
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+    console.log(`Loaded ${offices.length} offices for VisitInfoSection`);
+    offices.forEach((office) => {
+      console.log(
+        `Office ${office.name}: ${office.purposes.length} purposes, ${office.staffToVisit.length} staff`
+      );
     });
-    
-    console.log(`✅ Fetched ${offices.length} offices for VisitInfoSection`);
-    
-    // Log summary for debugging
-    offices.forEach(office => {
-      console.log(`   📍 ${office.name}: ${office.purposes.length} purposes, ${office.staffToVisit.length} staff`);
-    });
-    
+
     return offices;
   } catch (error) {
-    console.error("❌ Error fetching offices:", error);
-    
-    // Return fallback offices for development/testing
-    const fallbackOffices = [
-      {
-        id: "1",
-        name: "REGISTRAR",
-        email: "registrar@example.com",
-        role: "office",
-        purposes: [
-          { id: "p1", name: "COR/TOR" },
-          { id: "p2", name: "INQUIRY" }
-        ],
-        staffToVisit: [
-          { id: "s1", name: "Ms. Uy", purpose: "COR/TOR" },
-          { id: "s2", name: "Ms. Dela Cruz", purpose: "COR/TOR" }
-        ]
-      },
-      {
-        id: "2",
-        name: "CLINIC",
-        email: "clinic@example.com",
-        role: "office",
-        purposes: [
-          { id: "p3", name: "MEDICAL" },
-          { id: "p4", name: "Medical Checkup" },
-          { id: "p5", name: "Medical Certificate" },
-          { id: "p6", name: "Dental Checkup" }
-        ],
-        staffToVisit: [
-          { id: "s3", name: "Dr. Santos", purpose: "MEDICAL" },
-          { id: "s4", name: "Dr. Villanueva", purpose: "MEDICAL" }
-        ]
-      },
-      {
-        id: "3",
-        name: "CASHIER",
-        email: "cashier@example.com",
-        role: "office",
-        purposes: [
-          { id: "p7", name: "PAYMENT" }
-        ],
-        staffToVisit: [
-          { id: "s5", name: "Mr. Tan", purpose: "PAYMENT" }
-        ]
-      },
-      {
-        id: "4",
-        name: "CCIS/CTAS OFFICE",
-        email: "ccis@example.com",
-        role: "office",
-        purposes: [
-          { id: "p8", name: "INQUIRY" },
-          { id: "p9", name: "SUBMISSION OF REQUIREMENTS" }
-        ],
-        staffToVisit: [
-          { id: "s6", name: "Ms. Sasha Isabela Uy" },
-          { id: "s7", name: "Mrs. Cathlene Leah Gabo" },
-          { id: "s8", name: "Mr. Raymond Cempron" },
-          { id: "s9", name: "Mr. Emiliano Maravilla" },
-          { id: "s10", name: "Mrs. Dhoree Maravilla" }
-        ]
-      }
-    ];
-    
-    console.log("⚠️ Using fallback office data due to fetch error");
-    return fallbackOffices;
+    console.error("Error fetching offices:", error);
+    return [];
   }
 };
 
