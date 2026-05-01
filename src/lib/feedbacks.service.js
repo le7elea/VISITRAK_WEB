@@ -1,13 +1,10 @@
 import {
   addDoc,
   collection,
-  doc,
   getDocs,
-  limit,
   onSnapshot,
   orderBy,
   query,
-  runTransaction,
   serverTimestamp,
   where,
 } from "firebase/firestore";
@@ -88,136 +85,65 @@ const buildFeedbackData = (feedback, overrides = {}) => {
   };
 };
 
-const normalizeManualTokenRecord = (docSnap) => {
-  const data = docSnap.data() || {};
-  const manualSubmissionDefaults =
-    removeUndefinedDeep(data.manualSubmissionDefaults || {});
-  const maxUses = Number.isFinite(Number(data.maxUses))
-    ? Number(data.maxUses)
-    : 1;
-  const remainingUses = Number.isFinite(Number(data.remainingUses))
-    ? Number(data.remainingUses)
-    : maxUses;
-  const useCount = Number.isFinite(Number(data.useCount))
-    ? Number(data.useCount)
-    : 0;
-  const office =
-    toTrimmedText(manualSubmissionDefaults.office) ||
-    toTrimmedText(data.office);
-  const officialOfficeName =
-    toTrimmedText(manualSubmissionDefaults.officialOfficeName) ||
-    toTrimmedText(data.officialOfficeName) ||
-    office;
+const normalizeManualTokenApiRecord = (record = {}) => ({
+  ...record,
+  expiresAt: toDateValue(record.expiresAt),
+});
 
-  return {
-    id: docSnap.id,
-    token: toTrimmedText(data.token),
-    accessKey: toTrimmedText(data.accessKey),
-    mode: toTrimmedText(data.mode),
-    type: toTrimmedText(data.type),
-    source: toTrimmedText(data.source),
-    status: toTrimmedText(data.status) || "active",
-    revoked: data.revoked === true,
-    used: data.used === true,
-    expiresAt: toDateValue(data.expiresAt),
-    maxUses,
-    remainingUses,
-    useCount,
-    office,
-    officialOfficeName,
-    approvedBy: data.approvedBy || {},
-    approvedByLabel: toTrimmedText(data.approvedByLabel),
-    manualSubmissionDefaults,
-    raw: data,
-  };
+const parseManualApiResponse = async (response, fallbackMessage) => {
+  let payload = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok || payload?.success !== true) {
+    throw new Error(payload?.message || fallbackMessage);
+  }
+
+  return payload?.data;
 };
 
-const assertValidManualTokenRecord = (tokenRecord, token, accessKey) => {
-  const cleanToken = toTrimmedText(token).toUpperCase();
-  const cleanAccessKey = toTrimmedText(accessKey).toUpperCase();
+const callManualFeedbackApi = async (endpoint, payload, fallbackMessage) => {
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (!tokenRecord) {
-    throw new Error("This manual feedback approval token could not be found.");
-  }
+    return await parseManualApiResponse(response, fallbackMessage);
+  } catch (error) {
+    if (error instanceof Error && error.message) {
+      throw error;
+    }
 
-  if (!tokenRecord.token || tokenRecord.token.toUpperCase() !== cleanToken) {
-    throw new Error("This manual feedback approval token is invalid.");
-  }
-
-  if (
-    !tokenRecord.accessKey ||
-    tokenRecord.accessKey.toUpperCase() !== cleanAccessKey
-  ) {
-    throw new Error("This manual feedback QR access key is invalid.");
-  }
-
-  if (tokenRecord.mode && tokenRecord.mode.toLowerCase() !== "manual") {
-    throw new Error("This approval token is not configured for manual feedback.");
-  }
-
-  if (tokenRecord.source && tokenRecord.source.toLowerCase() !== "manual-qr") {
-    throw new Error("This approval token was not issued for manual QR feedback.");
-  }
-
-  if (tokenRecord.revoked) {
-    throw new Error("This manual feedback approval was revoked by the admin.");
-  }
-
-  if (!tokenRecord.expiresAt) {
-    throw new Error("This manual feedback approval is missing an expiration date.");
-  }
-
-  if (tokenRecord.expiresAt.getTime() <= Date.now()) {
-    throw new Error("This manual feedback approval has expired.");
-  }
-
-  if (
-    tokenRecord.used ||
-    tokenRecord.status.toLowerCase() === "used" ||
-    tokenRecord.remainingUses <= 0
-  ) {
-    throw new Error("This manual feedback approval has already been used.");
+    throw new Error(fallbackMessage);
   }
 };
 
-const buildManualTokenReadError = (error) => {
-  if (error?.code === "permission-denied") {
+const buildManualApiNetworkError = (error, fallbackMessage) => {
+  if (error instanceof TypeError) {
     return new Error(
-      "Manual QR validation is blocked by Firestore permissions. Allow the website to read manual feedback tokens or add a validator endpoint."
+      "Could not reach the server for manual feedback processing. Please check the internet connection and try again."
     );
   }
 
-  if (error?.code === "unavailable") {
-    return new Error(
-      "Could not reach Firestore to validate this manual feedback QR. Please check the internet connection and try again."
-    );
-  }
-
-  if (error?.message) {
+  if (error instanceof Error && error.message) {
     return error;
   }
 
-  return new Error("Failed to validate the manual feedback approval token.");
-};
-
-const buildManualSubmissionError = (error) => {
-  if (error?.code === "permission-denied") {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
     return new Error(
-      "Manual QR submission is blocked by Firestore permissions. Allow feedback writes and token redemption, or move token redemption to a secure backend."
+      "Could not reach the server for manual feedback processing. Please check the internet connection and try again."
     );
   }
 
-  if (error?.code === "unavailable") {
-    return new Error(
-      "Could not submit the manual feedback right now. Please check the internet connection and try again."
-    );
-  }
-
-  if (error?.message) {
-    return error;
-  }
-
-  return new Error("Failed to submit the manual feedback entry.");
+  return new Error(fallbackMessage);
 };
 
 /**
@@ -262,23 +188,22 @@ export const validateManualFeedbackToken = async ({ token, accessKey }) => {
   }
 
   try {
-    const tokenQuery = query(
-      collection(db, "manualFeedbackTokens"),
-      where("token", "==", cleanToken),
-      limit(1)
+    const tokenRecord = await callManualFeedbackApi(
+      "/api/validate-manual-feedback",
+      {
+        token: cleanToken,
+        accessKey: cleanAccessKey,
+      },
+      "Failed to validate the manual feedback approval token."
     );
 
-    const snapshot = await getDocs(tokenQuery);
-    if (snapshot.empty) {
-      throw new Error("This manual feedback approval token is invalid.");
-    }
-
-    const tokenRecord = normalizeManualTokenRecord(snapshot.docs[0]);
-    assertValidManualTokenRecord(tokenRecord, cleanToken, cleanAccessKey);
-    return tokenRecord;
+    return normalizeManualTokenApiRecord(tokenRecord);
   } catch (error) {
     console.error("Error validating manual feedback token:", error);
-    throw buildManualTokenReadError(error);
+    throw buildManualApiNetworkError(
+      error,
+      "Failed to validate the manual feedback approval token."
+    );
   }
 };
 
@@ -301,73 +226,25 @@ export const submitManualFeedback = async ({
       throw new Error("Answers must be a non-empty object.");
     }
 
-    const tokenRef = doc(db, "manualFeedbackTokens", tokenId);
-    const feedbackRef = doc(collection(db, "feedbacks"));
-
-    await runTransaction(db, async (transaction) => {
-      const tokenSnap = await transaction.get(tokenRef);
-      if (!tokenSnap.exists()) {
-        throw new Error("This manual feedback approval token no longer exists.");
-      }
-
-      const tokenRecord = normalizeManualTokenRecord(tokenSnap);
-      assertValidManualTokenRecord(tokenRecord, token, accessKey);
-
-      const nextRemainingUses = Math.max(0, tokenRecord.remainingUses - 1);
-      const nextUseCount = tokenRecord.useCount + 1;
-      const tokenFullyUsed = nextRemainingUses === 0;
-      const surveyDetails = removeUndefinedDeep(feedback.surveyDetails || {});
-      const office =
-        toTrimmedText(feedback.office) ||
-        toTrimmedText(tokenRecord.office) ||
-        toTrimmedText(surveyDetails.unitOfficeVisited);
-      const officialOfficeName =
-        toTrimmedText(feedback.officialOfficeName) ||
-        toTrimmedText(tokenRecord.officialOfficeName) ||
-        office;
-
-      const feedbackData = buildFeedbackData(
-        {
+    return await callManualFeedbackApi(
+      "/api/submit-manual-feedback",
+      {
+        tokenId,
+        token,
+        accessKey,
+        feedback: {
           ...feedback,
-          visitId: null,
-          name:
-            toTrimmedText(tokenRecord.manualSubmissionDefaults.name) ||
-            "Anonymous",
-          displayName: "Anonymous",
-          office,
-          officialOfficeName,
-          manualEntry: true,
-          source:
-            toTrimmedText(tokenRecord.manualSubmissionDefaults.source) ||
-            tokenRecord.source ||
-            "manual-qr",
+          surveyDetails: removeUndefinedDeep(feedback.surveyDetails || {}),
         },
-        {
-          manualTokenId: tokenRecord.id,
-          manualTokenType: tokenRecord.type || "single",
-          approvedOffice: tokenRecord.office || office,
-          officialOfficeName,
-          approvedBy: tokenRecord.approvedBy || {},
-          approvedByLabel: tokenRecord.approvedByLabel,
-          createdAt: serverTimestamp(),
-        }
-      );
-
-      transaction.set(feedbackRef, feedbackData);
-      transaction.update(tokenRef, {
-        remainingUses: nextRemainingUses,
-        useCount: nextUseCount,
-        used: tokenFullyUsed,
-        status: tokenFullyUsed ? "used" : "active",
-        updatedAt: serverTimestamp(),
-        lastUsedAt: serverTimestamp(),
-      });
-    });
-
-    return { id: feedbackRef.id };
+      },
+      "Failed to submit the manual feedback entry."
+    );
   } catch (error) {
     console.error("Error submitting manual feedback:", error);
-    throw buildManualSubmissionError(error);
+    throw buildManualApiNetworkError(
+      error,
+      "Failed to submit the manual feedback entry."
+    );
   }
 };
 
