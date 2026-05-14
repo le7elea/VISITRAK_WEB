@@ -71,10 +71,10 @@ const citizensCharterQuestions = [
     optionsGridClass: "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2",
     options: [
       { value: "1", label: "1 - Easy to see" },
-      { value: "4", label: "4 - Not visible at all" },
       { value: "2", label: "2 - Somewhat easy to see" },
-      { value: "5", label: "5 - N/A" },
       { value: "3", label: "3 - Difficult to see" },
+      { value: "4", label: "4 - Not visible at all" },
+      { value: "5", label: "5 - N/A" },
     ],
   },
   {
@@ -84,8 +84,8 @@ const citizensCharterQuestions = [
     optionsGridClass: "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2",
     options: [
       { value: "1", label: "1 - Helped very much" },
-      { value: "3", label: "3 - Did not help" },
       { value: "2", label: "2 - Somewhat helped" },
+      { value: "3", label: "3 - Did not help" },
       { value: "4", label: "4 - N/A" },
     ],
   },
