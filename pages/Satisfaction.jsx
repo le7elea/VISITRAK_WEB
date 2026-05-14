@@ -91,6 +91,12 @@ const citizensCharterQuestions = [
   },
 ];
 
+const CC_NOT_AWARE_VALUE = "4";
+const CC2_NA_VALUE = "5";
+const CC3_NA_VALUE = "4";
+const ccFollowUpQuestionIds = ["cc2", "cc3"];
+const isCcFollowUpQuestion = (questionId) => ccFollowUpQuestionIds.includes(questionId);
+
 const metadataLabelClass = "text-xs sm:text-sm font-semibold text-[#1f1f1f]";
 const metadataFieldClass =
   "w-full mt-1 rounded-md border border-[#b9b9b9] bg-white px-3 py-2 text-sm text-[#232323] outline-none focus:border-[#7f5bb3] focus:ring-2 focus:ring-[#7f5bb3]/30";
@@ -331,9 +337,17 @@ const Satisfaction = () => {
   };
 
   const handleCcOptionChange = (questionId, optionValue) => {
+    if (ccResponses.cc1 === CC_NOT_AWARE_VALUE && isCcFollowUpQuestion(questionId)) {
+      return;
+    }
+
     clearValidationError(questionId);
 
-    if (questionId === "cc1" && optionValue === "4" && ccResponses.cc1 !== "4") {
+    if (
+      questionId === "cc1" &&
+      optionValue === CC_NOT_AWARE_VALUE &&
+      ccResponses.cc1 !== CC_NOT_AWARE_VALUE
+    ) {
       clearValidationError("cc2");
       clearValidationError("cc3");
     }
@@ -342,16 +356,21 @@ const Satisfaction = () => {
       const isTogglingOff = prev[questionId] === optionValue;
 
       if (questionId === "cc1") {
-        if (optionValue === "4") {
+        if (optionValue === CC_NOT_AWARE_VALUE) {
           if (isTogglingOff) {
             return { ...prev, cc1: "", cc2: "", cc3: "" };
           }
 
-          return { ...prev, cc1: "4", cc2: "5", cc3: "4" };
+          return {
+            ...prev,
+            cc1: CC_NOT_AWARE_VALUE,
+            cc2: CC2_NA_VALUE,
+            cc3: CC3_NA_VALUE,
+          };
         }
 
         const nextCc1 = isTogglingOff ? "" : optionValue;
-        if (prev.cc1 === "4") {
+        if (prev.cc1 === CC_NOT_AWARE_VALUE) {
           return { ...prev, cc1: nextCc1, cc2: "", cc3: "" };
         }
 
@@ -774,25 +793,37 @@ const Satisfaction = () => {
                     </p>
                   </div>
                   <div className={question.optionsGridClass}>
-                    {question.options.map((option) => (
-                      <label
-                        key={option.value}
-                        className="inline-flex items-start gap-2 text-xs sm:text-sm text-[#2f2f2f] cursor-pointer leading-snug"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={ccResponses[question.id] === option.value}
-                          onChange={() => handleCcOptionChange(question.id, option.value)}
-                          className="mt-[2px] h-4 w-4 rounded-[4px] border-[#707070] shrink-0"
-                        />
-                        <span>
-                          {option.label}
-                          {option.note && (
-                            <span className="italic"> {option.note}</span>
-                          )}
-                        </span>
-                      </label>
-                    ))}
+                    {question.options.map((option) => {
+                      const selected = ccResponses[question.id] === option.value;
+                      const disabledByCc1 =
+                        ccResponses.cc1 === CC_NOT_AWARE_VALUE &&
+                        isCcFollowUpQuestion(question.id);
+
+                      return (
+                        <label
+                          key={option.value}
+                          className={`inline-flex items-start gap-2 text-xs sm:text-sm leading-snug ${
+                            disabledByCc1
+                              ? "cursor-not-allowed text-[#737373]"
+                              : "cursor-pointer text-[#2f2f2f]"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            disabled={disabledByCc1}
+                            onChange={() => handleCcOptionChange(question.id, option.value)}
+                            className="mt-[2px] h-4 w-4 rounded-[4px] border-[#707070] shrink-0 disabled:cursor-not-allowed"
+                          />
+                          <span>
+                            {option.label}
+                            {option.note && (
+                              <span className="italic"> {option.note}</span>
+                            )}
+                          </span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </section>
               ))}
