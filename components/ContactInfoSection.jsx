@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaPhoneAlt, FaEnvelope } from "react-icons/fa";
 import { MdContactPhone } from "react-icons/md";
 
@@ -20,6 +20,12 @@ export default function ContactInfoSection({
 }) {
   const [contactWarning, setContactWarning] = useState("");
   const [emailWarning, setEmailWarning] = useState("");
+
+  useEffect(() => {
+    if (!contactNumber) {
+      setContactNumber("09");
+    }
+  }, [contactNumber, setContactNumber]);
 
   // Contact Number Handler (matching React Native logic)
   const handleContactChange = (e) => {
