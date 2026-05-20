@@ -28,6 +28,7 @@ const ratingQuestions = [
 ];
 
 const regionOptions = [
+  "NONE",
   "NCR",
   "CAR",
   "I",
