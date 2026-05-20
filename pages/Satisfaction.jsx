@@ -418,8 +418,8 @@ const Satisfaction = () => {
     setError("");
 
     const nonRatingValidation = {
-      clientType: !clientType,
-      sex: !sex,
+      clientType: !isManualEntryMode && !clientType,
+      sex: !isManualEntryMode && !sex,
       region: !region,
       officeVisited: !officeVisited,
       cc1: !ccResponses.cc1,
@@ -432,7 +432,9 @@ const Satisfaction = () => {
     const hasNonRatingErrors = Object.values(nonRatingValidation).some(Boolean);
     if (hasNonRatingErrors) {
       setError(
-        "Please complete all required fields in Client Type, Sex, Region/Office, and CC questions."
+        isManualEntryMode
+          ? "Please complete all required fields in Region/Office and CC questions."
+          : "Please complete all required fields in Client Type, Sex, Region/Office, and CC questions."
       );
       formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       setSubmitting(false);
