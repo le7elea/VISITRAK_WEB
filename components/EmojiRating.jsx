@@ -44,6 +44,8 @@ const icons = [
   },
 ];
 
+const displayIcons = [...icons].reverse();
+
 const EmojiRating = ({ value, onChange }) => {
   const notApplicable = value === 0;
 
@@ -55,7 +57,7 @@ const EmojiRating = ({ value, onChange }) => {
     <div className="w-full">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-4 sm:gap-5 md:gap-6">
         <div className="flex items-center justify-between w-full md:flex-1 md:pr-6 lg:pr-10">
-          {icons.map((icon) => {
+          {displayIcons.map((icon) => {
             const IconComponent = icon.Component;
             const isActive = value === icon.value;
             const iconColor = isActive && !notApplicable ? icon.color : "#9b9b9b";
