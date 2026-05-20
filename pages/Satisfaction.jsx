@@ -94,6 +94,8 @@ const citizensCharterQuestions = [
 const CC_NOT_AWARE_VALUE = "4";
 const CC2_NA_VALUE = "5";
 const CC3_NA_VALUE = "4";
+const ccFollowUpQuestionIds = ["cc2", "cc3"];
+const isCcFollowUpQuestion = (questionId) => ccFollowUpQuestionIds.includes(questionId);
 
 const metadataLabelClass = "text-xs sm:text-sm font-semibold text-[#1f1f1f]";
 const metadataFieldClass =
@@ -335,6 +337,14 @@ const Satisfaction = () => {
   };
 
   const handleCcOptionChange = (questionId, optionValue) => {
+    if (
+      !isManualEntryMode &&
+      ccResponses.cc1 === CC_NOT_AWARE_VALUE &&
+      isCcFollowUpQuestion(questionId)
+    ) {
+      return;
+    }
+
     clearValidationError(questionId);
 
     if (
@@ -355,12 +365,14 @@ const Satisfaction = () => {
             return { ...prev, cc1: "", cc2: "", cc3: "" };
           }
 
-          return {
-            ...prev,
-            cc1: CC_NOT_AWARE_VALUE,
-            cc2: CC2_NA_VALUE,
-            cc3: CC3_NA_VALUE,
-          };
+          return isManualEntryMode
+            ? { ...prev, cc1: CC_NOT_AWARE_VALUE }
+            : {
+                ...prev,
+                cc1: CC_NOT_AWARE_VALUE,
+                cc2: CC2_NA_VALUE,
+                cc3: CC3_NA_VALUE,
+              };
         }
 
         const nextCc1 = isTogglingOff ? "" : optionValue;
@@ -789,17 +801,26 @@ const Satisfaction = () => {
                   <div className={question.optionsGridClass}>
                     {question.options.map((option) => {
                       const selected = ccResponses[question.id] === option.value;
+                      const disabledByCc1 =
+                        !isManualEntryMode &&
+                        ccResponses.cc1 === CC_NOT_AWARE_VALUE &&
+                        isCcFollowUpQuestion(question.id);
 
                       return (
                         <label
                           key={option.value}
-                          className="inline-flex items-start gap-2 text-xs sm:text-sm leading-snug cursor-pointer text-[#2f2f2f]"
+                          className={`inline-flex items-start gap-2 text-xs sm:text-sm leading-snug ${
+                            disabledByCc1
+                              ? "cursor-not-allowed text-[#737373]"
+                              : "cursor-pointer text-[#2f2f2f]"
+                          }`}
                         >
                           <input
                             type="checkbox"
                             checked={selected}
+                            disabled={disabledByCc1}
                             onChange={() => handleCcOptionChange(question.id, option.value)}
-                            className="mt-[2px] h-4 w-4 rounded-[4px] border-[#707070] shrink-0"
+                            className="mt-[2px] h-4 w-4 rounded-[4px] border-[#707070] shrink-0 disabled:cursor-not-allowed"
                           />
                           <span>
                             {option.label}

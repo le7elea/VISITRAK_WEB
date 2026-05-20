@@ -51,6 +51,12 @@ export default function AccessGate({ children }) {
       params.get(TOKEN_PARAM) &&
       incomingKey;
 
+    if (manualTokenRequest) {
+      setAllowed(true);
+      setChecked(true);
+      return;
+    }
+
     if (incomingKey && incomingKey === ACCESS_KEY) {
       sessionStorage.setItem(SESSION_FLAG_KEY, "1");
 
@@ -61,12 +67,6 @@ export default function AccessGate({ children }) {
         navigate(cleanUrl, { replace: true });
       }
 
-      setAllowed(true);
-      setChecked(true);
-      return;
-    }
-
-    if (manualTokenRequest) {
       setAllowed(true);
       setChecked(true);
       return;
