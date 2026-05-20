@@ -110,6 +110,9 @@ const isSpecificManualOffice = (officeValue) => {
   return Boolean(normalizedOffice && normalizedOffice !== "all offices");
 };
 
+const isSelectableOffice = (officeValue) =>
+  toTrimmedText(officeValue).toLowerCase() !== "all offices";
+
 const StatusScreen = ({ title, message, buttonLabel, onButtonClick }) => (
   <div className="min-h-screen bg-gradient-to-b from-[#381366] via-[#4A2279] to-[#573483] flex items-center justify-center px-4">
     <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center">
@@ -210,7 +213,7 @@ const Satisfaction = () => {
           new Set(
             names
               .map((name) => toTrimmedText(name))
-              .filter(Boolean)
+              .filter((name) => Boolean(name) && isSelectableOffice(name))
           )
         );
 
