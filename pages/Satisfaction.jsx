@@ -111,6 +111,7 @@ const isSpecificManualOffice = (officeValue) => {
 };
 
 const isSelectableOffice = (officeValue) =>
+  Boolean(toTrimmedText(officeValue)) &&
   toTrimmedText(officeValue).toLowerCase() !== "all offices";
 
 const StatusScreen = ({ title, message, buttonLabel, onButtonClick }) => (
@@ -301,7 +302,13 @@ const Satisfaction = () => {
         if (!isMounted) return;
 
         setManualTokenRecord(tokenRecord);
-        setOfficeVisited((current) => current || tokenRecord.office || requestedOffice);
+        const tokenOffice = isSelectableOffice(tokenRecord.office)
+          ? tokenRecord.office
+          : "";
+        const urlOffice = isSelectableOffice(requestedOffice) ? requestedOffice : "";
+        setOfficeVisited((current) =>
+          isSelectableOffice(current) ? current : tokenOffice || urlOffice
+        );
         setShowNameWithFeedback(false);
         sessionStorage.setItem(MANUAL_SESSION_FLAG_KEY, "1");
       } catch (validationError) {
@@ -427,6 +434,17 @@ const Satisfaction = () => {
       setError(
         "Please complete all required fields in Client Type, Sex, Region/Office, and CC questions."
       );
+      formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setSubmitting(false);
+      return;
+    }
+
+    if (!isSelectableOffice(officeVisited)) {
+      setValidationErrors((current) => ({
+        ...current,
+        officeVisited: true,
+      }));
+      setError("Please select a specific office before submitting feedback.");
       formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       setSubmitting(false);
       return;
@@ -726,7 +744,8 @@ const Satisfaction = () => {
                       ? "Select an office"
                       : "Checked-in office will appear here"}
                   </option>
-                  {officeVisited && !officeOptions.includes(officeVisited) && (
+                  {isSelectableOffice(officeVisited) &&
+                    !officeOptions.includes(officeVisited) && (
                     <option value={officeVisited}>{officeVisited}</option>
                   )}
                   {officeOptions.map((option) => (
