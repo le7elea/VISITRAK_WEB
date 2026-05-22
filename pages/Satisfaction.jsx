@@ -178,7 +178,6 @@ const Satisfaction = () => {
 
   const [clientType, setClientType] = useState("");
   const [sex, setSex] = useState("");
-  const [manualVisitorName, setManualVisitorName] = useState("");
   const [region, setRegion] = useState("VII");
   const [officeVisited, setOfficeVisited] = useState(state?.office ?? "");
   const [servicesAvailed, setServicesAvailed] = useState(state?.purpose ?? "");
@@ -193,17 +192,8 @@ const Satisfaction = () => {
   });
 
   const isManualEntryMode = Boolean(manualTokenRecord);
-  const isLifetimeManualEntry =
-    isManualEntryMode &&
-    (manualTokenRecord?.type === "lifetime" || manualTokenRecord?.lifetime === true);
-  const requiresApplicationProfile = !isManualEntryMode || isLifetimeManualEntry;
-  const resolvedManualVisitorName = toTrimmedText(manualVisitorName);
   const manualOfficeLocked = isSpecificManualOffice(manualTokenRecord?.office);
-  const displayNameLabel = isManualEntryMode
-    ? isLifetimeManualEntry
-      ? resolvedManualVisitorName || "Visitor"
-      : "ANONYMOUS MANUAL ENTRY"
-    : visitorName;
+  const displayNameLabel = isManualEntryMode ? "ANONYMOUS MANUAL ENTRY" : visitorName;
   const approvedOfficeLabel =
     manualTokenRecord?.officialOfficeName ||
     manualTokenRecord?.office ||
@@ -317,9 +307,7 @@ const Satisfaction = () => {
         setOfficeVisited((current) =>
           isSelectableOffice(current) ? current : tokenOffice || urlOffice
         );
-        setShowNameWithFeedback(
-          tokenRecord?.type === "lifetime" || tokenRecord?.lifetime === true
-        );
+        setShowNameWithFeedback(false);
         sessionStorage.setItem(MANUAL_SESSION_FLAG_KEY, "1");
       } catch (validationError) {
         if (!isMounted) return;
@@ -428,9 +416,8 @@ const Satisfaction = () => {
     setError("");
 
     const nonRatingValidation = {
-      manualVisitorName: isLifetimeManualEntry && !resolvedManualVisitorName,
-      clientType: requiresApplicationProfile && !clientType,
-      sex: requiresApplicationProfile && !sex,
+      clientType: !isManualEntryMode && !clientType,
+      sex: !isManualEntryMode && !sex,
       region: !region,
       officeVisited: !officeVisited,
       cc1: !ccResponses.cc1,
@@ -443,9 +430,9 @@ const Satisfaction = () => {
     const hasNonRatingErrors = Object.values(nonRatingValidation).some(Boolean);
     if (hasNonRatingErrors) {
       setError(
-        isManualEntryMode && !isLifetimeManualEntry
+        isManualEntryMode
           ? "Please complete all required fields in Region/Office and CC questions."
-          : "Please complete all required fields in Name, Client Type, Sex, Region/Office, and CC questions."
+          : "Please complete all required fields in Client Type, Sex, Region/Office, and CC questions."
       );
       formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       setSubmitting(false);
@@ -495,35 +482,20 @@ const Satisfaction = () => {
       };
 
       if (isManualEntryMode) {
-        const manualName = isLifetimeManualEntry
-          ? resolvedManualVisitorName
-          : "Anonymous";
-        const manualDisplayName = isLifetimeManualEntry
-          ? showNameWithFeedback
-            ? manualName
-            : "Anonymous"
-          : "Anonymous";
-
         await submitManualFeedback({
           tokenId: manualTokenRecord.id,
           token: manualToken,
           accessKey: manualAccessKey,
           feedback: {
-            name: manualName,
-            displayName: manualDisplayName,
+            name: "Anonymous",
+            displayName: "Anonymous",
             office: officeVisited.trim(),
             officialOfficeName:
               manualTokenRecord?.officialOfficeName || officeVisited.trim(),
             answers: sanitizedAnswers,
             suggestion: suggestion.trim(),
             commendation: commendation.trim(),
-            surveyDetails: {
-              ...surveyDetails,
-              manualVisitorName: isLifetimeManualEntry ? manualName : undefined,
-              showNameToAdmin: isLifetimeManualEntry
-                ? showNameWithFeedback
-                : false,
-            },
+            surveyDetails,
           },
         });
         sessionStorage.setItem(MANUAL_SESSION_FLAG_KEY, "1");
@@ -620,7 +592,7 @@ const Satisfaction = () => {
             ref={formCardRef}
             className="bg-[#efefef] rounded-2xl p-4 sm:p-6 md:p-7 border border-white/80 shadow-xl"
           >
-            {isManualEntryMode && !isLifetimeManualEntry ? (
+            {isManualEntryMode ? (
               <div className="mb-4 rounded-xl border border-[#d7caea] bg-white/70 px-4 py-3">
                 <p className="text-sm font-semibold text-[#1f1f1f]">
                   Anonymous manual feedback mode is active.
@@ -636,25 +608,6 @@ const Satisfaction = () => {
                 <legend className="px-1 text-sm font-semibold text-[#1f1f1f]">
                   Feedback Name Display
                 </legend>
-                {isLifetimeManualEntry && (
-                  <label className="mt-2 block text-sm font-semibold text-[#1f1f1f]">
-                    Visitor Name
-                    <input
-                      type="text"
-                      value={manualVisitorName}
-                      onChange={(event) => {
-                        clearValidationError("manualVisitorName");
-                        setManualVisitorName(event.target.value.toUpperCase());
-                      }}
-                      placeholder="Enter visitor name"
-                      className={`${metadataFieldClass} ${
-                        validationErrors.manualVisitorName
-                          ? "border-red-500 focus:border-red-500 focus:ring-red-200"
-                          : ""
-                      }`}
-                    />
-                  </label>
-                )}
                 <label className="mt-2 flex cursor-pointer items-start gap-3 rounded-lg border border-[#d2d2d2] bg-white px-3 py-2 text-sm text-[#2f2f2f]">
                   <input
                     type="checkbox"
