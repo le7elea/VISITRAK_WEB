@@ -112,14 +112,28 @@ export default async function handler(req, res) {
       const tokenFullyUsed = nextRemainingUses === 0;
       const { office, officialOfficeName, surveyDetails } =
         getManualOfficeMetadata(feedback, tokenRecord);
+      const isLifetimeToken =
+        tokenRecord.type === "lifetime" || tokenRecord.lifetime === true;
+      const submittedName =
+        typeof feedback.name === "string" ? feedback.name.trim() : "";
+      const manualName = isLifetimeToken
+        ? submittedName || "Anonymous"
+        : tokenRecord.manualSubmissionDefaults.name || "Anonymous";
+      const submittedDisplayName =
+        typeof feedback.displayName === "string"
+          ? feedback.displayName.trim()
+          : "";
+      const manualDisplayName = isLifetimeToken
+        ? submittedDisplayName || manualName
+        : "Anonymous";
 
       const feedbackData = buildFeedbackData(
         {
           ...feedback,
           surveyDetails,
           visitId: null,
-          name: tokenRecord.manualSubmissionDefaults.name || "Anonymous",
-          displayName: "Anonymous",
+          name: manualName,
+          displayName: manualDisplayName,
           office,
           officialOfficeName,
           manualEntry: true,
