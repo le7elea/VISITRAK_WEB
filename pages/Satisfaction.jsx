@@ -192,8 +192,16 @@ const Satisfaction = () => {
   });
 
   const isManualEntryMode = Boolean(manualTokenRecord);
+  const isLifetimeManualEntry =
+    isManualEntryMode &&
+    (manualTokenRecord?.type === "lifetime" || manualTokenRecord?.lifetime === true);
+  const usesApplicationFormRules = !isManualEntryMode || isLifetimeManualEntry;
   const manualOfficeLocked = isSpecificManualOffice(manualTokenRecord?.office);
-  const displayNameLabel = isManualEntryMode ? "ANONYMOUS MANUAL ENTRY" : visitorName;
+  const displayNameLabel = isManualEntryMode
+    ? isLifetimeManualEntry
+      ? "LIFETIME FEEDBACK QR"
+      : "ANONYMOUS MANUAL ENTRY"
+    : visitorName;
   const approvedOfficeLabel =
     manualTokenRecord?.officialOfficeName ||
     manualTokenRecord?.office ||
@@ -347,7 +355,7 @@ const Satisfaction = () => {
 
   const handleCcOptionChange = (questionId, optionValue) => {
     if (
-      !isManualEntryMode &&
+      usesApplicationFormRules &&
       ccResponses.cc1 === CC_NOT_AWARE_VALUE &&
       isCcFollowUpQuestion(questionId)
     ) {
@@ -374,7 +382,7 @@ const Satisfaction = () => {
             return { ...prev, cc1: "", cc2: "", cc3: "" };
           }
 
-          return isManualEntryMode
+          return !usesApplicationFormRules
             ? { ...prev, cc1: CC_NOT_AWARE_VALUE }
             : {
                 ...prev,
@@ -416,8 +424,8 @@ const Satisfaction = () => {
     setError("");
 
     const nonRatingValidation = {
-      clientType: !isManualEntryMode && !clientType,
-      sex: !isManualEntryMode && !sex,
+      clientType: usesApplicationFormRules && !clientType,
+      sex: usesApplicationFormRules && !sex,
       region: !region,
       officeVisited: !officeVisited,
       cc1: !ccResponses.cc1,
@@ -430,7 +438,7 @@ const Satisfaction = () => {
     const hasNonRatingErrors = Object.values(nonRatingValidation).some(Boolean);
     if (hasNonRatingErrors) {
       setError(
-        isManualEntryMode
+        !usesApplicationFormRules
           ? "Please complete all required fields in Region/Office and CC questions."
           : "Please complete all required fields in Client Type, Sex, Region/Office, and CC questions."
       );
@@ -592,7 +600,7 @@ const Satisfaction = () => {
             ref={formCardRef}
             className="bg-[#efefef] rounded-2xl p-4 sm:p-6 md:p-7 border border-white/80 shadow-xl"
           >
-            {isManualEntryMode ? (
+            {isManualEntryMode && !isLifetimeManualEntry ? (
               <div className="mb-4 rounded-xl border border-[#d7caea] bg-white/70 px-4 py-3">
                 <p className="text-sm font-semibold text-[#1f1f1f]">
                   Anonymous manual feedback mode is active.
@@ -603,7 +611,7 @@ const Satisfaction = () => {
                   Anonymous.
                 </p>
               </div>
-            ) : (
+            ) : !isManualEntryMode ? (
               <fieldset className="mb-4 rounded-xl border border-[#d7caea] bg-white/70 px-4 py-3">
                 <legend className="px-1 text-sm font-semibold text-[#1f1f1f]">
                   Feedback Name Display
@@ -630,7 +638,7 @@ const Satisfaction = () => {
                   </span>
                 </label>
               </fieldset>
-            )}
+            ) : null}
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <fieldset>
