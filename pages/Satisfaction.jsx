@@ -582,7 +582,7 @@ const Satisfaction = () => {
             <h1 className="text-white text-lg sm:text-2xl font-bold tracking-wide">
               CUSTOMER SATISFACTION FEEDBACK FORM
             </h1>
-            <p className="text-[#d1b6f8] text-xs sm:text-sm mt-1 tracking-wide">
+            {/* <p className="text-[#d1b6f8] text-xs sm:text-sm mt-1 tracking-wide">
               VISITOR : <span className="font-semibold">{displayNameLabel}</span>
             </p>
             {isManualEntryMode && (
@@ -593,7 +593,7 @@ const Satisfaction = () => {
                   ? ` • Expires ${manualTokenRecord.expiresAt.toLocaleString()}`
                   : ""}
               </p>
-            )}
+            )} */}
           </div>
 
           <div
