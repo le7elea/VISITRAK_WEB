@@ -700,7 +700,7 @@ const Satisfaction = () => {
               <div className="relative">
                 <label
                   htmlFor="region-residence"
-                  className="absolute -top-2 left-3 px-1.5 bg-[#efefef] text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
+                  className="absolute -top-2 left-3 px-1.5 bg-white text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
                 >
                   Region of Residence
                 </label>
@@ -729,7 +729,7 @@ const Satisfaction = () => {
               <div className="relative">
                 <label
                   htmlFor="unit-office-visited"
-                  className="absolute -top-2 left-3 px-1.5 bg-[#efefef] text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
+                  className="absolute -top-2 left-3 px-1.5 bg-white text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
                 >
                   Unit / Office Visited (Gibisita nga opisina)
                 </label>
@@ -925,6 +925,14 @@ const Satisfaction = () => {
               </div>
             </div>
 
+            <div className="mt-5 flex items-center gap-4 px-2 sm:px-8">
+              <div className="h-[2px] flex-1 bg-[#1f1f1f]" />
+              <p className="whitespace-nowrap text-center text-sm sm:text-base font-semibold italic text-[#2a2a2a]">
+                &ldquo;Salamat sa imong Feedback&rdquo;
+              </p>
+              <div className="h-[2px] flex-1 bg-[#1f1f1f]" />
+            </div>
+
             {error && (
               <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {error}
@@ -945,13 +953,17 @@ const Satisfaction = () => {
                 ? "Submitting..."
                 : validatingManualToken
                   ? "Validating QR..."
-                  : loadingVisitOffice
+                : loadingVisitOffice
                     ? "Loading visit..."
                     : "SUBMIT FEEDBACK"}
             </button>
 
-            <p className="text-center text-[#4b4b4b] text-sm sm:text-base pt-3 pb-1">
+            <p className="pt-3 text-center text-[11px] sm:text-xs text-[#b7b7b7]">
               &copy; 2025 LMT. All right reserved.
+            </p>
+
+            <p className="pt-4 text-left text-[9px] font-bold leading-none text-black sm:text-[10px]">
+              F-AQA-CSF-003 | Rev. 3 | 06/23/26 | Page 1 of 1
             </p>
           </div>
         </div>
