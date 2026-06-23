@@ -111,7 +111,7 @@ const FeedbackHeader = () => (
       <img
         src={bisuLogo}
         alt="Bohol Island State University logo"
-        className="h-16 w-16 shrink-0 object-contain sm:h-20 sm:w-20"
+        className="h-18 w-18 shrink-0 object-contain sm:h-24 sm:w-24"
       />
 
       <div className="min-w-0 leading-tight text-left text-[#202020]">
