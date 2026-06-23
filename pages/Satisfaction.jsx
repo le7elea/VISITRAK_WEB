@@ -107,44 +107,44 @@ const metadataFieldClass =
 
 const FormOfficialHeader = () => (
   <div className="mb-3 bg-white">
-    <div className="grid grid-cols-[42px_1fr_112px] items-center gap-2 sm:grid-cols-[54px_1fr_150px] sm:gap-3">
+    <div className="grid grid-cols-[56px_1fr_150px] items-center gap-3 sm:grid-cols-[74px_1fr_190px] sm:gap-4">
       <img
         src={bisuLogo}
         alt="Bohol Island State University logo"
-        className="h-10 w-10 object-contain sm:h-12 sm:w-12"
+        className="h-14 w-14 object-contain sm:h-16 sm:w-16"
       />
 
       <div className="min-w-0 leading-tight text-[#101010]">
-        <p className="text-[7px] sm:text-[10px]">Republic of the Philippines</p>
-        <p className="text-[8px] font-extrabold uppercase sm:text-sm">
+        <p className="text-sm sm:text-base">Republic of the Philippines</p>
+        <p className="text-base font-extrabold uppercase sm:text-xl">
           Bohol Island State University
         </p>
-        <p className="text-[7px] sm:text-[10px]">
+        <p className="text-sm sm:text-base">
           Magsija, Balilihan 6342, Bohol, Philippines
         </p>
-        <p className="text-[7px] sm:text-[10px]">
+        <p className="text-sm sm:text-base">
           Personnel and Human Resource Management Office
         </p>
-        <p className="font-serif text-[7px] italic sm:text-[10px]">
+        <p className="font-serif text-sm italic sm:text-base">
           Balance | Integrity | Stewardship | Uprightness
         </p>
       </div>
 
-      <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+      <div className="flex items-center justify-end gap-2 sm:gap-3">
         <img
           src={bagongPilipinasLogo}
           alt="Bagong Pilipinas logo"
-          className="h-8 w-8 object-contain sm:h-11 sm:w-11"
+          className="h-10 w-10 object-contain sm:h-14 sm:w-14"
         />
         <img
           src={tuvIsoLogo}
           alt="TUV Rheinland ISO certification logo"
-          className="h-10 w-[70px] object-contain sm:h-12 sm:w-[94px]"
+          className="h-12 w-[92px] object-contain sm:h-14 sm:w-[112px]"
         />
       </div>
     </div>
 
-    <h1 className="mt-3 border-t border-[#cfcfcf] pt-2 text-center text-[10px] font-extrabold uppercase tracking-wide text-[#101010] sm:text-sm">
+    <h1 className="mt-3 border-t border-[#cfcfcf] pt-2 text-center text-sm font-extrabold uppercase tracking-wide text-[#101010] sm:text-base">
       Customer Satisfaction Feedback Form
     </h1>
   </div>
@@ -652,7 +652,7 @@ const Satisfaction = () => {
 
           <div
             ref={formCardRef}
-            className="rounded-md border border-white/80 bg-white p-3 shadow-xl sm:p-4 md:p-5"
+            className="rounded-md border border-white/80 bg-white p-4 shadow-xl sm:p-5 md:p-6"
           >
             <FormOfficialHeader />
 
