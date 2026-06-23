@@ -105,6 +105,14 @@ const metadataLabelClass = "text-xs sm:text-sm font-semibold text-[#1f1f1f]";
 const metadataFieldClass =
   "w-full mt-1 rounded-md border border-[#b9b9b9] bg-white px-3 py-2 text-sm text-[#232323] outline-none focus:border-[#7f5bb3] focus:ring-2 focus:ring-[#7f5bb3]/30";
 
+const getFooterDate = () =>
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila",
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
 const FeedbackHeader = () => (
   <div className="bg-white px-3 py-3 sm:px-5">
     <div className="grid grid-cols-[84px_1fr_152px] items-center gap-3 sm:grid-cols-[104px_1fr_188px] sm:gap-4">
@@ -253,6 +261,7 @@ const Satisfaction = () => {
     manualTokenRecord?.office ||
     requestedOffice;
   const officeSelectLocked = !isManualEntryMode || manualOfficeLocked;
+  const footerDate = getFooterDate();
 
   useEffect(() => {
     let isMounted = true;
@@ -1011,7 +1020,7 @@ const Satisfaction = () => {
             </p>
 
             <p className="pt-4 text-left text-[9px] font-bold leading-none text-black sm:text-[10px]">
-              F-AQA-CSF-003 | Rev. 3 | 06/23/26 | Page 1 of 1
+              F-AQA-CSF-003 | Rev. 3 | {footerDate} | Page 1 of 1
             </p>
           </div>
         </div>
