@@ -114,7 +114,7 @@ const FeedbackHeader = () => (
         className="h-14 w-14 shrink-0 object-contain sm:h-18 sm:w-18"
       />
 
-      <div className="min-w-0 leading-tight text-[#202020] text-center">
+      <div className="min-w-0 leading-tight text-left text-[#202020]">
         <p className="text-[10px] sm:text-sm">Republic of the Philippines</p>
         <p className="text-sm font-extrabold uppercase sm:text-lg">
           Bohol Island State University
@@ -142,7 +142,7 @@ const FeedbackHeader = () => (
       </div>
     </div>
 
-    <h1 className="mt-2 border-t border-[#d8d8d8] pt-2 text-center text-[11px] font-extrabold uppercase tracking-wide text-[#111] sm:text-xl">
+    <h1 className="mt-2 border-t border-[#d8d8d8] pt-2 text-left text-[11px] font-extrabold uppercase tracking-wide text-[#111] sm:text-xl">
       Customer Satisfaction Feedback Form
     </h1>
   </div>
