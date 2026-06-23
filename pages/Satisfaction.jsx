@@ -4,9 +4,6 @@ import { IoChevronDown } from "react-icons/io5";
 import Header from "../components/Satisfaction_header";
 import Question from "../components/Question";
 import EmojiRating from "../components/EmojiRating";
-import bisuLogo from "../src/assets/bisu-logo.png";
-import bagongPilipinasLogo from "../src/assets/bagong_pilipinas_logo.png";
-import tuvIsoLogo from "../src/assets/tuvISO_logo.png";
 import {
   addFeedback,
   submitManualFeedback,
@@ -104,57 +101,6 @@ const isCcFollowUpQuestion = (questionId) => ccFollowUpQuestionIds.includes(ques
 const metadataLabelClass = "text-xs sm:text-sm font-semibold text-[#1f1f1f]";
 const metadataFieldClass =
   "w-full mt-1 rounded-md border border-[#b9b9b9] bg-white px-3 py-2 text-sm text-[#232323] outline-none focus:border-[#7f5bb3] focus:ring-2 focus:ring-[#7f5bb3]/30";
-
-const FormOfficialHeader = () => (
-  <div className="mb-3 bg-white">
-    <div className="grid grid-cols-[56px_1fr_150px] items-center gap-3 sm:grid-cols-[74px_1fr_190px] sm:gap-4">
-      <img
-        src={bisuLogo}
-        alt="Bohol Island State University logo"
-        className="h-14 w-14 object-contain sm:h-16 sm:w-16"
-      />
-
-      <div className="min-w-0 leading-tight text-[#101010]">
-        <p className="text-sm sm:text-base">Republic of the Philippines</p>
-        <p className="text-base font-extrabold uppercase sm:text-xl">
-          Bohol Island State University
-        </p>
-        <p className="text-sm sm:text-base">
-          Magsija, Balilihan 6342, Bohol, Philippines
-        </p>
-        <p className="text-sm sm:text-base">
-          Personnel and Human Resource Management Office
-        </p>
-        <p className="font-serif text-sm italic sm:text-base">
-          Balance | Integrity | Stewardship | Uprightness
-        </p>
-      </div>
-
-      <div className="flex items-center justify-end gap-2 sm:gap-3">
-        <img
-          src={bagongPilipinasLogo}
-          alt="Bagong Pilipinas logo"
-          className="h-10 w-10 object-contain sm:h-14 sm:w-14"
-        />
-        <img
-          src={tuvIsoLogo}
-          alt="TUV Rheinland ISO certification logo"
-          className="h-12 w-[92px] object-contain sm:h-14 sm:w-[112px]"
-        />
-      </div>
-    </div>
-
-    <h1 className="mt-3 border-t border-[#cfcfcf] pt-2 text-center text-sm font-extrabold uppercase tracking-wide text-[#101010] sm:text-base">
-      Customer Satisfaction Feedback Form
-    </h1>
-  </div>
-);
-
-const FormDocumentFooter = () => (
-  <p className="mt-5 text-left text-[9px] font-bold leading-none text-black sm:text-[10px]">
-    F-AQA-CSF-002 | Rev. 3 | 06/23/26 | Page 1 of 5
-  </p>
-);
 
 const toTrimmedText = (value) =>
   typeof value === "string" ? value.trim() : "";
@@ -630,9 +576,9 @@ const Satisfaction = () => {
     <div className="min-h-screen bg-gradient-to-b from-[#381366] via-[#4A2279] to-[#573483]">
       <Header title="VisiTrak" />
 
-      <div className="px-3 pb-8 sm:px-5 lg:px-6">
-        <div className="mx-auto max-w-2xl">
-          <div className="hidden">
+      <div className="px-3 sm:px-5 lg:px-6 pb-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-4 sm:mb-5">
             <h1 className="text-white text-lg sm:text-2xl font-bold tracking-wide">
               CUSTOMER SATISFACTION FEEDBACK FORM
             </h1>
@@ -652,10 +598,8 @@ const Satisfaction = () => {
 
           <div
             ref={formCardRef}
-            className="rounded-md border border-white/80 bg-white p-4 shadow-xl sm:p-5 md:p-6"
+            className="bg-[#efefef] rounded-2xl p-4 sm:p-6 md:p-7 border border-white/80 shadow-xl"
           >
-            <FormOfficialHeader />
-
             {isManualEntryMode && !isLifetimeManualEntry ? (
               <div className="mb-4 rounded-xl border border-[#d7caea] bg-white/70 px-4 py-3">
                 <p className="text-sm font-semibold text-[#1f1f1f]">
@@ -756,7 +700,7 @@ const Satisfaction = () => {
               <div className="relative">
                 <label
                   htmlFor="region-residence"
-                  className="absolute -top-2 left-3 px-1.5 bg-white text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
+                  className="absolute -top-2 left-3 px-1.5 bg-[#efefef] text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
                 >
                   Region of Residence
                 </label>
@@ -785,7 +729,7 @@ const Satisfaction = () => {
               <div className="relative">
                 <label
                   htmlFor="unit-office-visited"
-                  className="absolute -top-2 left-3 px-1.5 bg-white text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
+                  className="absolute -top-2 left-3 px-1.5 bg-[#efefef] text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
                 >
                   Unit / Office Visited (Gibisita nga opisina)
                 </label>
@@ -1006,7 +950,9 @@ const Satisfaction = () => {
                     : "SUBMIT FEEDBACK"}
             </button>
 
-            <FormDocumentFooter />
+            <p className="text-center text-[#4b4b4b] text-sm sm:text-base pt-3 pb-1">
+              &copy; 2025 LMT. All right reserved.
+            </p>
           </div>
         </div>
       </div>
