@@ -624,8 +624,6 @@ const Satisfaction = () => {
 
       <div className="px-3 sm:px-5 lg:px-6 pb-8">
         <div className="max-w-5xl mx-auto">
-          <FeedbackHeader />
-
           <div className="hidden text-center mb-4 sm:mb-5">
             <h1 className="text-white text-lg sm:text-2xl font-bold tracking-wide">
               CUSTOMER SATISFACTION FEEDBACK FORM
@@ -648,6 +646,8 @@ const Satisfaction = () => {
             ref={formCardRef}
             className="bg-[#efefef] rounded-2xl p-4 sm:p-6 md:p-7 border border-white/80 shadow-xl"
           >
+            <FeedbackHeader />
+
             {isManualEntryMode && !isLifetimeManualEntry ? (
               <div className="mb-4 rounded-xl border border-[#d7caea] bg-white/70 px-4 py-3">
                 <p className="text-sm font-semibold text-[#1f1f1f]">
