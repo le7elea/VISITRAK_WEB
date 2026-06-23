@@ -4,6 +4,7 @@ import { IoChevronDown } from "react-icons/io5";
 import Header from "../components/Satisfaction_header";
 import Question from "../components/Question";
 import EmojiRating from "../components/EmojiRating";
+import bisuLogo from "../src/assets/bisu-logo.png";
 import {
   addFeedback,
   submitManualFeedback,
@@ -101,6 +102,73 @@ const isCcFollowUpQuestion = (questionId) => ccFollowUpQuestionIds.includes(ques
 const metadataLabelClass = "text-xs sm:text-sm font-semibold text-[#1f1f1f]";
 const metadataFieldClass =
   "w-full mt-1 rounded-md border border-[#b9b9b9] bg-white px-3 py-2 text-sm text-[#232323] outline-none focus:border-[#7f5bb3] focus:ring-2 focus:ring-[#7f5bb3]/30";
+
+const FormOfficialHeader = () => (
+  <div className="mb-5 border border-[#d6d6d6] bg-white px-3 py-3 sm:px-5">
+    <div className="grid grid-cols-[56px_1fr] items-center gap-3 lg:grid-cols-[74px_1fr_300px] lg:gap-5">
+      <img
+        src={bisuLogo}
+        alt="Bohol Island State University logo"
+        className="h-14 w-14 object-contain sm:h-16 sm:w-16 lg:h-[74px] lg:w-[74px]"
+      />
+
+      <div className="min-w-0 leading-tight text-[#101010]">
+        <p className="text-sm sm:text-base">Republic of the Philippines</p>
+        <p className="text-base font-extrabold uppercase sm:text-xl">
+          Bohol Island State University
+        </p>
+        <p className="text-sm sm:text-base">
+          Magsija, Balilihan 6342, Bohol, Philippines
+        </p>
+        <p className="text-sm sm:text-base">
+          Personnel and Human Resource Management Office
+        </p>
+        <p className="font-serif text-sm italic sm:text-base">
+          Balance | Integrity | Stewardship | Uprightness
+        </p>
+      </div>
+
+      <div className="col-span-2 mt-3 flex items-center justify-center gap-4 lg:col-span-1 lg:mt-0 lg:justify-end">
+        <div className="flex flex-col items-center leading-none">
+          <div className="relative h-14 w-16">
+            <div className="absolute left-1/2 top-1 h-7 w-7 -translate-x-1/2 rounded-full bg-[#ffd322]" />
+            <div className="absolute bottom-1 left-1/2 h-9 w-14 -translate-x-1/2 rounded-b-full bg-gradient-to-br from-[#1f3192] via-[#d91f2a] to-[#f6c519]" />
+            <div className="absolute bottom-4 left-1/2 h-7 w-10 -translate-x-1/2 rounded-t-full border-t-[7px] border-white" />
+          </div>
+          <span className="text-[9px] font-extrabold uppercase text-[#1f3192]">
+            Bagong Pilipinas
+          </span>
+        </div>
+
+        <div className="flex h-[72px] w-[132px] overflow-hidden rounded-[6px] border border-[#b4b4b4] bg-[#f2f2f2] shadow-inner">
+          <div className="flex w-[76px] flex-col items-center justify-center border-r border-[#c7c7c7] bg-white">
+            <span className="text-3xl font-bold leading-none text-[#1384b7]">
+              △
+            </span>
+            <span className="text-[9px] font-bold leading-none text-[#222]">
+              TUVRheinland
+            </span>
+            <span className="mt-1 rounded-sm bg-[#1688bd] px-1.5 py-0.5 text-[8px] font-bold text-white">
+              CERTIFIED
+            </span>
+          </div>
+          <div className="flex flex-1 flex-col justify-between px-2 py-1.5 text-[8px] font-semibold leading-tight text-[#4a4a4a]">
+            <span>Management System</span>
+            <span>ISO 9001:2015</span>
+            <span className="text-[7px] font-normal">www.tuv.com</span>
+            <span className="text-[7px] font-normal">ID 9108588239</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const FormDocumentFooter = () => (
+  <p className="mt-5 text-left text-[9px] font-bold leading-none text-black sm:text-[10px]">
+    F-AQA-CSF-002 | Rev. 3 | 06/23/26 | Page 1 of 5
+  </p>
+);
 
 const toTrimmedText = (value) =>
   typeof value === "string" ? value.trim() : "";
@@ -600,6 +668,8 @@ const Satisfaction = () => {
             ref={formCardRef}
             className="bg-[#efefef] rounded-2xl p-4 sm:p-6 md:p-7 border border-white/80 shadow-xl"
           >
+            <FormOfficialHeader />
+
             {isManualEntryMode && !isLifetimeManualEntry ? (
               <div className="mb-4 rounded-xl border border-[#d7caea] bg-white/70 px-4 py-3">
                 <p className="text-sm font-semibold text-[#1f1f1f]">
@@ -950,9 +1020,7 @@ const Satisfaction = () => {
                     : "SUBMIT FEEDBACK"}
             </button>
 
-            <p className="text-center text-[#4b4b4b] text-sm sm:text-base pt-3 pb-1">
-              &copy; 2025 LMT. All right reserved.
-            </p>
+            <FormDocumentFooter />
           </div>
         </div>
       </div>
