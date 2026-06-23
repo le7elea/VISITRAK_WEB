@@ -5,6 +5,8 @@ import Header from "../components/Satisfaction_header";
 import Question from "../components/Question";
 import EmojiRating from "../components/EmojiRating";
 import bisuLogo from "../src/assets/bisu-logo.png";
+import bagongPilipinasLogo from "../src/assets/bagong_pilipinas_logo.png";
+import tuvIsoLogo from "../src/assets/tuvISO_logo.png";
 import {
   addFeedback,
   submitManualFeedback,
@@ -104,63 +106,47 @@ const metadataFieldClass =
   "w-full mt-1 rounded-md border border-[#b9b9b9] bg-white px-3 py-2 text-sm text-[#232323] outline-none focus:border-[#7f5bb3] focus:ring-2 focus:ring-[#7f5bb3]/30";
 
 const FormOfficialHeader = () => (
-  <div className="mb-5 border border-[#d6d6d6] bg-white px-3 py-3 sm:px-5">
-    <div className="grid grid-cols-[56px_1fr] items-center gap-3 lg:grid-cols-[74px_1fr_300px] lg:gap-5">
+  <div className="mb-3 bg-white">
+    <div className="grid grid-cols-[42px_1fr_112px] items-center gap-2 sm:grid-cols-[54px_1fr_150px] sm:gap-3">
       <img
         src={bisuLogo}
         alt="Bohol Island State University logo"
-        className="h-14 w-14 object-contain sm:h-16 sm:w-16 lg:h-[74px] lg:w-[74px]"
+        className="h-10 w-10 object-contain sm:h-12 sm:w-12"
       />
 
       <div className="min-w-0 leading-tight text-[#101010]">
-        <p className="text-sm sm:text-base">Republic of the Philippines</p>
-        <p className="text-base font-extrabold uppercase sm:text-xl">
+        <p className="text-[7px] sm:text-[10px]">Republic of the Philippines</p>
+        <p className="text-[8px] font-extrabold uppercase sm:text-sm">
           Bohol Island State University
         </p>
-        <p className="text-sm sm:text-base">
+        <p className="text-[7px] sm:text-[10px]">
           Magsija, Balilihan 6342, Bohol, Philippines
         </p>
-        <p className="text-sm sm:text-base">
+        <p className="text-[7px] sm:text-[10px]">
           Personnel and Human Resource Management Office
         </p>
-        <p className="font-serif text-sm italic sm:text-base">
+        <p className="font-serif text-[7px] italic sm:text-[10px]">
           Balance | Integrity | Stewardship | Uprightness
         </p>
       </div>
 
-      <div className="col-span-2 mt-3 flex items-center justify-center gap-4 lg:col-span-1 lg:mt-0 lg:justify-end">
-        <div className="flex flex-col items-center leading-none">
-          <div className="relative h-14 w-16">
-            <div className="absolute left-1/2 top-1 h-7 w-7 -translate-x-1/2 rounded-full bg-[#ffd322]" />
-            <div className="absolute bottom-1 left-1/2 h-9 w-14 -translate-x-1/2 rounded-b-full bg-gradient-to-br from-[#1f3192] via-[#d91f2a] to-[#f6c519]" />
-            <div className="absolute bottom-4 left-1/2 h-7 w-10 -translate-x-1/2 rounded-t-full border-t-[7px] border-white" />
-          </div>
-          <span className="text-[9px] font-extrabold uppercase text-[#1f3192]">
-            Bagong Pilipinas
-          </span>
-        </div>
-
-        <div className="flex h-[72px] w-[132px] overflow-hidden rounded-[6px] border border-[#b4b4b4] bg-[#f2f2f2] shadow-inner">
-          <div className="flex w-[76px] flex-col items-center justify-center border-r border-[#c7c7c7] bg-white">
-            <span className="text-3xl font-bold leading-none text-[#1384b7]">
-              △
-            </span>
-            <span className="text-[9px] font-bold leading-none text-[#222]">
-              TUVRheinland
-            </span>
-            <span className="mt-1 rounded-sm bg-[#1688bd] px-1.5 py-0.5 text-[8px] font-bold text-white">
-              CERTIFIED
-            </span>
-          </div>
-          <div className="flex flex-1 flex-col justify-between px-2 py-1.5 text-[8px] font-semibold leading-tight text-[#4a4a4a]">
-            <span>Management System</span>
-            <span>ISO 9001:2015</span>
-            <span className="text-[7px] font-normal">www.tuv.com</span>
-            <span className="text-[7px] font-normal">ID 9108588239</span>
-          </div>
-        </div>
+      <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+        <img
+          src={bagongPilipinasLogo}
+          alt="Bagong Pilipinas logo"
+          className="h-8 w-8 object-contain sm:h-11 sm:w-11"
+        />
+        <img
+          src={tuvIsoLogo}
+          alt="TUV Rheinland ISO certification logo"
+          className="h-10 w-[70px] object-contain sm:h-12 sm:w-[94px]"
+        />
       </div>
     </div>
+
+    <h1 className="mt-3 border-t border-[#cfcfcf] pt-2 text-center text-[10px] font-extrabold uppercase tracking-wide text-[#101010] sm:text-sm">
+      Customer Satisfaction Feedback Form
+    </h1>
   </div>
 );
 
@@ -644,9 +630,9 @@ const Satisfaction = () => {
     <div className="min-h-screen bg-gradient-to-b from-[#381366] via-[#4A2279] to-[#573483]">
       <Header title="VisiTrak" />
 
-      <div className="px-3 sm:px-5 lg:px-6 pb-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-4 sm:mb-5">
+      <div className="px-3 pb-8 sm:px-5 lg:px-6">
+        <div className="mx-auto max-w-2xl">
+          <div className="hidden">
             <h1 className="text-white text-lg sm:text-2xl font-bold tracking-wide">
               CUSTOMER SATISFACTION FEEDBACK FORM
             </h1>
@@ -666,7 +652,7 @@ const Satisfaction = () => {
 
           <div
             ref={formCardRef}
-            className="bg-[#efefef] rounded-2xl p-4 sm:p-6 md:p-7 border border-white/80 shadow-xl"
+            className="rounded-md border border-white/80 bg-white p-3 shadow-xl sm:p-4 md:p-5"
           >
             <FormOfficialHeader />
 
@@ -770,7 +756,7 @@ const Satisfaction = () => {
               <div className="relative">
                 <label
                   htmlFor="region-residence"
-                  className="absolute -top-2 left-3 px-1.5 bg-[#efefef] text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
+                  className="absolute -top-2 left-3 px-1.5 bg-white text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
                 >
                   Region of Residence
                 </label>
@@ -799,7 +785,7 @@ const Satisfaction = () => {
               <div className="relative">
                 <label
                   htmlFor="unit-office-visited"
-                  className="absolute -top-2 left-3 px-1.5 bg-[#efefef] text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
+                  className="absolute -top-2 left-3 px-1.5 bg-white text-[#5f5f5f] text-[11px] sm:text-xs font-semibold leading-none z-10"
                 >
                   Unit / Office Visited (Gibisita nga opisina)
                 </label>
