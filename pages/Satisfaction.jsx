@@ -4,6 +4,9 @@ import { IoChevronDown } from "react-icons/io5";
 import Header from "../components/Satisfaction_header";
 import Question from "../components/Question";
 import EmojiRating from "../components/EmojiRating";
+import bisuLogo from "../src/assets/bisu-logo.png";
+import bagongPilipinasLogo from "../src/assets/bagong_pilipinas_logo.png";
+import tuvIsoLogo from "../src/assets/tuvISO_logo.png";
 import {
   addFeedback,
   submitManualFeedback,
@@ -101,6 +104,49 @@ const isCcFollowUpQuestion = (questionId) => ccFollowUpQuestionIds.includes(ques
 const metadataLabelClass = "text-xs sm:text-sm font-semibold text-[#1f1f1f]";
 const metadataFieldClass =
   "w-full mt-1 rounded-md border border-[#b9b9b9] bg-white px-3 py-2 text-sm text-[#232323] outline-none focus:border-[#7f5bb3] focus:ring-2 focus:ring-[#7f5bb3]/30";
+
+const FeedbackHeader = () => (
+  <div className="bg-white px-3 py-3 sm:px-5">
+    <div className="flex items-start gap-3 sm:gap-4">
+      <img
+        src={bisuLogo}
+        alt="Bohol Island State University logo"
+        className="h-12 w-12 shrink-0 object-contain sm:h-16 sm:w-16"
+      />
+
+      <div className="min-w-0 flex-1 leading-tight text-[#202020]">
+        <p className="text-[10px] sm:text-sm">Republic of the Philippines</p>
+        <p className="text-sm font-extrabold uppercase sm:text-lg">
+          Bohol Island State University
+        </p>
+        <p className="text-[10px] sm:text-sm">Magsija, Balilihan 6342, Bohol, Philippines</p>
+        <p className="text-[10px] sm:text-sm">
+          Personnel and Human Resource Management Office
+        </p>
+        <p className="font-serif text-[10px] italic sm:text-sm">
+          Balance | Integrity | Stewardship | Uprightness
+        </p>
+      </div>
+
+      <div className="flex shrink-0 items-start gap-2 sm:gap-3">
+        <img
+          src={bagongPilipinasLogo}
+          alt="Bagong Pilipinas logo"
+          className="h-11 w-11 object-contain sm:h-14 sm:w-14"
+        />
+        <img
+          src={tuvIsoLogo}
+          alt="TUV Rheinland ISO certification logo"
+          className="h-11 w-[74px] object-contain sm:h-14 sm:w-[90px]"
+        />
+      </div>
+    </div>
+
+    <h1 className="mt-2 border-t border-[#d8d8d8] pt-2 text-center text-[11px] font-extrabold uppercase tracking-wide text-[#111] sm:text-xl">
+      Customer Satisfaction Feedback Form
+    </h1>
+  </div>
+);
 
 const toTrimmedText = (value) =>
   typeof value === "string" ? value.trim() : "";
@@ -578,7 +624,9 @@ const Satisfaction = () => {
 
       <div className="px-3 sm:px-5 lg:px-6 pb-8">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-4 sm:mb-5">
+          <FeedbackHeader />
+
+          <div className="hidden text-center mb-4 sm:mb-5">
             <h1 className="text-white text-lg sm:text-2xl font-bold tracking-wide">
               CUSTOMER SATISFACTION FEEDBACK FORM
             </h1>
