@@ -107,14 +107,14 @@ const metadataFieldClass =
 
 const FeedbackHeader = () => (
   <div className="bg-white px-3 py-3 sm:px-5">
-    <div className="flex items-start gap-3 sm:gap-4">
+    <div className="grid grid-cols-[72px_1fr_132px] items-center gap-3 sm:grid-cols-[88px_1fr_168px] sm:gap-4">
       <img
         src={bisuLogo}
         alt="Bohol Island State University logo"
-        className="h-12 w-12 shrink-0 object-contain sm:h-16 sm:w-16"
+        className="h-14 w-14 shrink-0 object-contain sm:h-18 sm:w-18"
       />
 
-      <div className="min-w-0 flex-1 leading-tight text-[#202020]">
+      <div className="min-w-0 leading-tight text-[#202020] text-center">
         <p className="text-[10px] sm:text-sm">Republic of the Philippines</p>
         <p className="text-sm font-extrabold uppercase sm:text-lg">
           Bohol Island State University
@@ -128,16 +128,16 @@ const FeedbackHeader = () => (
         </p>
       </div>
 
-      <div className="flex shrink-0 items-start gap-2 sm:gap-3">
+      <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
         <img
           src={bagongPilipinasLogo}
           alt="Bagong Pilipinas logo"
-          className="h-11 w-11 object-contain sm:h-14 sm:w-14"
+          className="h-14 w-14 object-contain sm:h-16 sm:w-16"
         />
         <img
           src={tuvIsoLogo}
           alt="TUV Rheinland ISO certification logo"
-          className="h-11 w-[74px] object-contain sm:h-14 sm:w-[90px]"
+          className="h-14 w-[88px] object-contain sm:h-16 sm:w-[112px]"
         />
       </div>
     </div>
