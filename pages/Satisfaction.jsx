@@ -142,7 +142,7 @@ const FeedbackHeader = () => (
       </div>
     </div>
 
-    <h1 className="mt-2 border-t border-[#d8d8d8] pt-2 text-left text-[11px] font-extrabold uppercase tracking-wide text-[#111] sm:text-xl">
+    <h1 className="mt-2 border-t border-[#d8d8d8] pt-2 text-center text-[11px] font-extrabold uppercase tracking-wide text-[#111] sm:text-xl">
       Customer Satisfaction Feedback Form
     </h1>
   </div>
