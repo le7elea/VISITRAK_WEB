@@ -126,6 +126,14 @@ const toTimeInputValue = (dateValue) => {
   return `${hours}:${minutes}`;
 };
 
+const getInitialVisitDateTime = () => {
+  const now = new Date();
+  return {
+    date: toDateInputValue(now),
+    time: toTimeInputValue(now),
+  };
+};
+
 const getFooterDate = () =>
   new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Manila",
@@ -251,10 +259,11 @@ const Satisfaction = () => {
   const [validatingManualToken, setValidatingManualToken] = useState(false);
   const [officeOptions, setOfficeOptions] = useState([]);
 
+  const [initialVisitDateTime] = useState(getInitialVisitDateTime);
   const [clientType, setClientType] = useState("");
   const [sex, setSex] = useState("");
-  const [dateOfVisit, setDateOfVisit] = useState("");
-  const [timeOfVisit, setTimeOfVisit] = useState("");
+  const [dateOfVisit, setDateOfVisit] = useState(initialVisitDateTime.date);
+  const [timeOfVisit, setTimeOfVisit] = useState(initialVisitDateTime.time);
   const [region, setRegion] = useState("VII");
   const [officeVisited, setOfficeVisited] = useState(state?.office ?? "");
   const [servicesAvailed, setServicesAvailed] = useState(state?.purpose ?? "");
@@ -337,8 +346,8 @@ const Satisfaction = () => {
         setOfficeVisited(visit.office?.trim() || "");
         setServicesAvailed((current) => current || visit.purpose?.trim() || "");
         setServicedBy((current) => current || visit.staffName?.trim() || "");
-        setDateOfVisit((current) => current || toDateInputValue(visit.checkInTime));
-        setTimeOfVisit((current) => current || toTimeInputValue(visit.checkInTime));
+        setDateOfVisit(toDateInputValue(visit.checkInTime) || initialVisitDateTime.date);
+        setTimeOfVisit(toTimeInputValue(visit.checkInTime) || initialVisitDateTime.time);
       } catch (loadError) {
         if (!isMounted) return;
         console.error("Failed to load visit office:", loadError);
@@ -354,7 +363,7 @@ const Satisfaction = () => {
     return () => {
       isMounted = false;
     };
-  }, [isManualTokenRequest, state?.office, visitId]);
+  }, [initialVisitDateTime.date, initialVisitDateTime.time, isManualTokenRequest, state?.office, visitId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -721,8 +730,9 @@ const Satisfaction = () => {
                 <input
                   type="date"
                   value={dateOfVisit}
-                  onChange={(event) => setDateOfVisit(event.target.value)}
-                  className={metadataFieldClass}
+                  readOnly
+                  tabIndex={-1}
+                  className={`${metadataFieldClass} cursor-default bg-[#f3f3f3] text-[#4f4f4f] focus:border-[#b9b9b9] focus:ring-0`}
                 />
               </label>
 
@@ -731,8 +741,9 @@ const Satisfaction = () => {
                 <input
                   type="time"
                   value={timeOfVisit}
-                  onChange={(event) => setTimeOfVisit(event.target.value)}
-                  className={metadataFieldClass}
+                  readOnly
+                  tabIndex={-1}
+                  className={`${metadataFieldClass} cursor-default bg-[#f3f3f3] text-[#4f4f4f] focus:border-[#b9b9b9] focus:ring-0`}
                 />
               </label>
             </div>
