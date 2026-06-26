@@ -105,6 +105,27 @@ const metadataLabelClass = "text-xs sm:text-sm font-semibold text-[#1f1f1f]";
 const metadataFieldClass =
   "w-full mt-1 rounded-md border border-[#b9b9b9] bg-white px-3 py-2 text-sm text-[#232323] outline-none focus:border-[#7f5bb3] focus:ring-2 focus:ring-[#7f5bb3]/30";
 
+const toDateInputValue = (dateValue) => {
+  if (!(dateValue instanceof Date) || Number.isNaN(dateValue.getTime())) {
+    return "";
+  }
+
+  const year = dateValue.getFullYear();
+  const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+  const day = String(dateValue.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const toTimeInputValue = (dateValue) => {
+  if (!(dateValue instanceof Date) || Number.isNaN(dateValue.getTime())) {
+    return "";
+  }
+
+  const hours = String(dateValue.getHours()).padStart(2, "0");
+  const minutes = String(dateValue.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
 const getFooterDate = () =>
   new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Manila",
@@ -232,6 +253,8 @@ const Satisfaction = () => {
 
   const [clientType, setClientType] = useState("");
   const [sex, setSex] = useState("");
+  const [dateOfVisit, setDateOfVisit] = useState("");
+  const [timeOfVisit, setTimeOfVisit] = useState("");
   const [region, setRegion] = useState("VII");
   const [officeVisited, setOfficeVisited] = useState(state?.office ?? "");
   const [servicesAvailed, setServicesAvailed] = useState(state?.purpose ?? "");
@@ -251,15 +274,6 @@ const Satisfaction = () => {
     (manualTokenRecord?.type === "lifetime" || manualTokenRecord?.lifetime === true);
   const usesApplicationFormRules = !isManualEntryMode || isLifetimeManualEntry;
   const manualOfficeLocked = isSpecificManualOffice(manualTokenRecord?.office);
-  const displayNameLabel = isManualEntryMode
-    ? isLifetimeManualEntry
-      ? "LIFETIME FEEDBACK QR"
-      : "ANONYMOUS MANUAL ENTRY"
-    : visitorName;
-  const approvedOfficeLabel =
-    manualTokenRecord?.officialOfficeName ||
-    manualTokenRecord?.office ||
-    requestedOffice;
   const officeSelectLocked = !isManualEntryMode || manualOfficeLocked;
   const footerDate = getFooterDate();
 
@@ -323,6 +337,8 @@ const Satisfaction = () => {
         setOfficeVisited(visit.office?.trim() || "");
         setServicesAvailed((current) => current || visit.purpose?.trim() || "");
         setServicedBy((current) => current || visit.staffName?.trim() || "");
+        setDateOfVisit((current) => current || toDateInputValue(visit.checkInTime));
+        setTimeOfVisit((current) => current || toTimeInputValue(visit.checkInTime));
       } catch (loadError) {
         if (!isMounted) return;
         console.error("Failed to load visit office:", loadError);
@@ -535,6 +551,8 @@ const Satisfaction = () => {
       const surveyDetails = {
         clientType: clientType || null,
         sex: sex || null,
+        dateOfVisit: dateOfVisit || null,
+        timeOfVisit: timeOfVisit || null,
         region: region || null,
         unitOfficeVisited: officeVisited.trim() || null,
         servicesAvailed: servicesAvailed.trim(),
@@ -696,6 +714,28 @@ const Satisfaction = () => {
                 </label>
               </fieldset>
             ) : null}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+              <label className={metadataLabelClass}>
+                Date of Visit (Petsa sa Pagbisita) :
+                <input
+                  type="date"
+                  value={dateOfVisit}
+                  onChange={(event) => setDateOfVisit(event.target.value)}
+                  className={metadataFieldClass}
+                />
+              </label>
+
+              <label className={metadataLabelClass}>
+                Time of Visit (Oras sa Pagbisita) :
+                <input
+                  type="time"
+                  value={timeOfVisit}
+                  onChange={(event) => setTimeOfVisit(event.target.value)}
+                  className={metadataFieldClass}
+                />
+              </label>
+            </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               <fieldset>
