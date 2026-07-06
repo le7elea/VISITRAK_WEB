@@ -134,13 +134,7 @@ const getInitialVisitDateTime = () => {
   };
 };
 
-const getFooterDate = () =>
-  new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Manila",
-    year: "2-digit",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+const FORM_FOOTER_DATE = "07/01/24";
 
 const FeedbackHeader = () => (
   <div className="bg-white px-3 py-3 sm:px-5">
@@ -284,7 +278,7 @@ const Satisfaction = () => {
   const usesApplicationFormRules = !isManualEntryMode || isLifetimeManualEntry;
   const manualOfficeLocked = isSpecificManualOffice(manualTokenRecord?.office);
   const officeSelectLocked = !isManualEntryMode || manualOfficeLocked;
-  const footerDate = getFooterDate();
+  const footerDate = FORM_FOOTER_DATE;
 
   useEffect(() => {
     let isMounted = true;
