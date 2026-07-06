@@ -278,6 +278,7 @@ const Satisfaction = () => {
   const usesApplicationFormRules = !isManualEntryMode || isLifetimeManualEntry;
   const manualOfficeLocked = isSpecificManualOffice(manualTokenRecord?.office);
   const officeSelectLocked = !isManualEntryMode || manualOfficeLocked;
+  const dateTimeLocked = !isManualEntryMode;
   const footerDate = FORM_FOOTER_DATE;
 
   useEffect(() => {
@@ -724,9 +725,14 @@ const Satisfaction = () => {
                 <input
                   type="date"
                   value={dateOfVisit}
-                  readOnly
-                  tabIndex={-1}
-                  className={`${metadataFieldClass} cursor-default bg-[#f3f3f3] text-[#4f4f4f] focus:border-[#b9b9b9] focus:ring-0`}
+                  onChange={(event) => setDateOfVisit(event.target.value)}
+                  readOnly={dateTimeLocked}
+                  tabIndex={dateTimeLocked ? -1 : undefined}
+                  className={`${metadataFieldClass} ${
+                    dateTimeLocked
+                      ? "cursor-default bg-[#f3f3f3] text-[#4f4f4f] focus:border-[#b9b9b9] focus:ring-0"
+                      : ""
+                  }`}
                 />
               </label>
 
@@ -735,9 +741,14 @@ const Satisfaction = () => {
                 <input
                   type="time"
                   value={timeOfVisit}
-                  readOnly
-                  tabIndex={-1}
-                  className={`${metadataFieldClass} cursor-default bg-[#f3f3f3] text-[#4f4f4f] focus:border-[#b9b9b9] focus:ring-0`}
+                  onChange={(event) => setTimeOfVisit(event.target.value)}
+                  readOnly={dateTimeLocked}
+                  tabIndex={dateTimeLocked ? -1 : undefined}
+                  className={`${metadataFieldClass} ${
+                    dateTimeLocked
+                      ? "cursor-default bg-[#f3f3f3] text-[#4f4f4f] focus:border-[#b9b9b9] focus:ring-0"
+                      : ""
+                  }`}
                 />
               </label>
             </div>
