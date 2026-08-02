@@ -137,43 +137,45 @@ const getInitialVisitDateTime = () => {
 const FORM_FOOTER_DATE = "07/01/24";
 
 const FeedbackHeader = () => (
-  <div className="bg-white px-3 py-3 sm:px-5">
-    <div className="grid grid-cols-[84px_1fr_152px] items-center gap-3 sm:grid-cols-[104px_1fr_188px] sm:gap-4">
-      <img
-        src={bisuLogo}
-        alt="Bohol Island State University logo"
-        className="h-18 w-18 shrink-0 object-contain sm:h-24 sm:w-24"
-      />
+  <div className="bg-white px-3 py-4 sm:px-5">
+    <div className="flex flex-col items-center gap-3 text-center md:grid md:grid-cols-[96px_minmax(0,1fr)_176px] md:items-center md:gap-4 md:text-left lg:grid-cols-[112px_minmax(0,1fr)_216px]">
+      <div className="flex w-full justify-center md:justify-start">
+        <img
+          src={bisuLogo}
+          alt="Bohol Island State University logo"
+          className="h-20 w-20 shrink-0 object-contain sm:h-24 sm:w-24 lg:h-28 lg:w-28"
+        />
+      </div>
 
-      <div className="min-w-0 leading-tight text-left text-[#202020]">
-        <p className="text-[10px] sm:text-sm">Republic of the Philippines</p>
-        <p className="text-sm font-extrabold uppercase sm:text-lg">
+      <div className="min-w-0 max-w-full leading-tight text-[#202020]">
+        <p className="text-[11px] sm:text-sm">Republic of the Philippines</p>
+        <p className="text-base font-extrabold uppercase leading-snug sm:text-lg lg:text-xl">
           Bohol Island State University
         </p>
-        <p className="text-[10px] sm:text-sm">Magsija, Balilihan 6342, Bohol, Philippines</p>
-        <p className="text-[10px] sm:text-sm">
+        <p className="text-[11px] sm:text-sm">Magsija, Balilihan 6342, Bohol, Philippines</p>
+        <p className="text-[11px] sm:text-sm">
           Personnel and Human Resource Management Office
         </p>
-        <p className="font-serif text-[10px] italic sm:text-sm">
+        <p className="font-serif text-[11px] italic sm:text-sm">
           Balance | Integrity | Stewardship | Uprightness
         </p>
       </div>
 
-      <div className="flex shrink-0 items-center justify-end gap-2 sm:gap-3">
+      <div className="flex w-full flex-wrap items-center justify-center gap-3 md:flex-nowrap md:justify-end">
         <img
           src={bagongPilipinasLogo}
           alt="Bagong Pilipinas logo"
-          className="h-16 w-16 object-contain sm:h-20 sm:w-20"
+          className="h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16 lg:h-20 lg:w-20"
         />
         <img
           src={tuvIsoLogo}
           alt="TUV Rheinland ISO certification logo"
-          className="h-16 w-[100px] object-contain sm:h-20 sm:w-[128px]"
+          className="h-14 w-24 shrink-0 object-contain sm:h-16 sm:w-28 lg:h-20 lg:w-32"
         />
       </div>
     </div>
 
-    <h1 className="mt-2 border-t border-[#d8d8d8] pt-5 text-center text-[11px] font-extrabold uppercase tracking-wide text-[#111] sm:text-xl">
+    <h1 className="mt-4 border-t border-[#d8d8d8] px-1 pt-4 text-center text-sm font-extrabold uppercase tracking-wide text-[#111] sm:text-lg lg:text-xl">
       Customer Satisfaction Feedback Form
     </h1>
   </div>
